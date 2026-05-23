@@ -1,0 +1,30 @@
+---
+import '../styles/global.css';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+const {
+  title = 'Astro Pages Blog',
+  description = 'A fancy, reusable GitHub Pages blog skeleton built with Astro.',
+  lang = 'en',
+  alternateHref = null
+} = Astro.props;
+const languageScript = `${import.meta.env.BASE_URL}js/language.js`;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body data-lang={lang}>
+    <Navbar lang={lang} alternateHref={alternateHref} />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+    <script type="module" src={languageScript}></script>
+  </body>
+</html>

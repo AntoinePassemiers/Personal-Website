@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL;
+const withBase = (path) => `${base}${path.replace(/^\//, '')}`;
+---
+<BaseLayout title="Blog Astro Pages" lang="fr" alternateHref="/en/">
+  <section class="container hero">
+    <div>
+      <p class="eyebrow">Compatible GitHub Pages</p>
+      <h1>Un blog statique élégant, sans HTML dupliqué.</h1>
+      <p class="lede">
+        Astro apporte des composants réutilisables, des articles Markdown,
+        des pages bilingues, des exemples de code et des pages interactives côté client.
+      </p>
+      <div class="button-row">
+        <a class="button" href={withBase('/blog/code-examples/fr/')}>Lire l’article de code</a>
+        <a class="button secondary" href={withBase('/game/fr/')}>Jouer au mini-jeu</a>
+      </div>
+    </div>
+    <aside class="card hero-card stack">
+      <p class="eyebrow">Architecture</p>
+      <h3>Une navbar. Plusieurs pages.</h3>
+      <p class="post-meta">
+        `Navbar.astro`, `Footer.astro`, `BaseLayout.astro` et `PostLayout.astro`
+        sont écrits une seule fois et réutilisés partout au moment du build.
+      </p>
+    </aside>
+  </section>
+
+  <section class="container">
+    <p class="eyebrow">À la une</p>
+    <div class="grid">
+      <a class="card post-card" href={withBase('/blog/code-examples/fr/')}>
+        <p class="post-meta">Rédaction technique</p>
+        <h3>Exemples de code en Markdown</h3>
+        <p class="post-meta">Blocs colorés, code inline et sorties statiques.</p>
+      </a>
+      <a class="card post-card" href={withBase('/blog/fr/')}>
+        <p class="post-meta">Blog</p>
+        <h3>Tous les articles</h3>
+        <p class="post-meta">Une liste d’articles avec tags, adaptée à la langue.</p>
+      </a>
+      <a class="card post-card" href={withBase('/game/fr/')}>
+        <p class="post-meta">Jeu</p>
+        <h3>Canvas côté client</h3>
+        <p class="post-meta">Un mini-jeu servi comme fichiers statiques.</p>
+      </a>
+    </div>
+  </section>
+</BaseLayout>

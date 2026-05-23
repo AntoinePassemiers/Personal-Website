@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const gameScript = `${import.meta.env.BASE_URL}game/tiny-game.js`;
+---
+<BaseLayout title="Tiny Canvas Game · Astro Pages Blog" lang="en" alternateHref="/game/fr/">
+  <section class="container hero">
+    <div>
+      <p class="eyebrow">Client-side game</p>
+      <h1>A tiny browser game served by GitHub Pages.</h1>
+      <p class="lede">Move the glowing square with arrow keys or WASD. Collect the orb. Everything runs in the browser; GitHub Pages only serves static files.</p>
+    </div>
+  </section>
+
+  <section class="container card game-shell">
+    <canvas id="game-canvas" width="960" height="540" aria-label="Tiny collect-the-orb canvas game"></canvas>
+    <p class="post-meta">Controls: Arrow keys or WASD. No backend, no build-time magic, just client-side JavaScript.</p>
+  </section>
+
+  <script type="module" src={gameScript}></script>
+</BaseLayout>

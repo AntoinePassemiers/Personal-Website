@@ -1,0 +1,17 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+const { frontmatter } = Astro.props;
+const lang = frontmatter.lang === 'fr' ? 'fr' : 'en';
+const otherLang = lang === 'en' ? 'fr' : 'en';
+const alternateHref = Astro.url.pathname.replace(new RegExp(`/${lang}/?$`), `/${otherLang}/`);
+---
+<BaseLayout title={`${frontmatter.title} · Astro Pages Blog`} description={frontmatter.description} lang={lang} alternateHref={alternateHref}>
+  <article class="prose">
+    <p class="eyebrow">{lang.toUpperCase()} · {frontmatter.date}</p>
+    <h1>{frontmatter.title}</h1>
+    <p class="lede">{frontmatter.description}</p>
+    {frontmatter.tag && <span class="tag">{frontmatter.tag}</span>}
+    <slot />
+  </article>
+</BaseLayout>

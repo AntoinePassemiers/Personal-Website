@@ -1,0 +1,61 @@
+---
+const {
+  lang = 'en',
+  alternateHref = null
+} = Astro.props;
+
+const base = import.meta.env.BASE_URL;
+const withBase = (path) => {
+  if (base !== '/' && path.startsWith(base)) return path;
+  return `${base}${path.replace(/^\//, '')}`;
+};
+const currentPath = Astro.url.pathname;
+const normalizedLang = lang === 'fr' ? 'fr' : 'en';
+const otherLang = normalizedLang === 'en' ? 'fr' : 'en';
+const labels = {
+  en: {
+    home: 'Home',
+    blog: 'Blog',
+    game: 'Game',
+    switchTo: 'FR'
+  },
+  fr: {
+    home: 'Accueil',
+    blog: 'Blog',
+    game: 'Jeu',
+    switchTo: 'EN'
+  }
+};
+const t = labels[normalizedLang];
+const links = [
+  { href: `/${normalizedLang}/`, label: t.home },
+  { href: `/blog/${normalizedLang}/`, label: t.blog },
+  { href: `/game/${normalizedLang}/`, label: t.game }
+];
+const fallbackAlternate = currentPath.replace(new RegExp(`/${normalizedLang}/?$`), `/${otherLang}/`);
+const switchHref = alternateHref ?? fallbackAlternate;
+---
+<header class="site-header">
+  <nav class="container nav" aria-label="Main navigation">
+    <a class="brand" href={withBase(`/${normalizedLang}/`)}>
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span>Astro Pages</span>
+    </a>
+    <div class="nav-links">
+      {links.map((link) => {
+        const href = withBase(link.href);
+        const isCurrent = currentPath === new URL(href, Astro.url).pathname || currentPath.endsWith(link.href);
+        return <a href={href} aria-current={isCurrent ? 'page' : undefined}>{link.label}</a>;
+      })}
+      <a
+        class="language-toggle"
+        href={withBase(switchHref)}
+        data-language-toggle
+        data-language={otherLang}
+        aria-label={`Switch language to ${otherLang.toUpperCase()}`}
+      >
+        {t.switchTo}
+      </a>
+    </div>
+  </nav>
+</header>

@@ -1,0 +1,17 @@
+---
+const base = import.meta.env.BASE_URL;
+const redirectScript = `${base}js/redirect-language.js`;
+---
+<!doctype html>
+<html lang="en" data-base={base} data-route="/">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Redirecting · Astro Pages Blog</title>
+    <meta http-equiv="refresh" content={`0; url=${base}en/`} />
+  </head>
+  <body>
+    <p>Redirecting to your preferred language…</p>
+    <script type="module" src={redirectScript}></script>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL;
+const withBase = (path) => `${base}${path.replace(/^\//, '')}`;
+---
+<BaseLayout title="Astro Pages Blog" lang="en" alternateHref="/fr/">
+  <section class="container hero">
+    <div>
+      <p class="eyebrow">GitHub Pages ready</p>
+      <h1>A polished static blog without duplicated HTML.</h1>
+      <p class="lede">
+        Astro gives this GitHub Pages blog reusable components, Markdown articles,
+        bilingual pages, code examples, and client-side interactive pages.
+      </p>
+      <div class="button-row">
+        <a class="button" href={withBase('/blog/code-examples/en/')}>Read code article</a>
+        <a class="button secondary" href={withBase('/game/en/')}>Play tiny game</a>
+      </div>
+    </div>
+    <aside class="card hero-card stack">
+      <p class="eyebrow">Architecture</p>
+      <h3>One navbar. Many pages.</h3>
+      <p class="post-meta">
+        `Navbar.astro`, `Footer.astro`, `BaseLayout.astro`, and `PostLayout.astro`
+        are authored once and reused everywhere at build time.
+      </p>
+    </aside>
+  </section>
+
+  <section class="container">
+    <p class="eyebrow">Featured</p>
+    <div class="grid">
+      <a class="card post-card" href={withBase('/blog/code-examples/en/')}>
+        <p class="post-meta">Technical writing</p>
+        <h3>Code examples in Markdown</h3>
+        <p class="post-meta">Syntax-highlighted blocks, inline code, and static outputs.</p>
+      </a>
+      <a class="card post-card" href={withBase('/blog/en/')}>
+        <p class="post-meta">Blog</p>
+        <h3>All articles</h3>
+        <p class="post-meta">A language-aware article list with tags.</p>
+      </a>
+      <a class="card post-card" href={withBase('/game/en/')}>
+        <p class="post-meta">Game</p>
+        <h3>Client-side canvas</h3>
+        <p class="post-meta">A tiny browser game served as static files.</p>
+      </a>
+    </div>
+  </section>
+</BaseLayout>

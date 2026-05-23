@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const modules = import.meta.glob('./**/*.md', { eager: true });
+const posts = Object.entries(modules)
+  .map(([path, module]) => {
+    const frontmatter = module.frontmatter;
+    const slug = path.replace('./', '').replace('/index.md', '').replace('.md', '');
+    return {
+      title: frontmatter.title,
+      description: frontmatter.description,
+      date: frontmatter.date,
+      lang: frontmatter.lang ?? 'en',
+      tag: frontmatter.tag ?? 'General',
+      href: `${import.meta.env.BASE_URL}blog/${slug}/`
+    };
+  })
+  .filter((post) => post.lang === 'en')
+  .sort((a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf());
+
+const tags = [...new Set(posts.map((post) => post.tag))].sort();
+---
+<BaseLayout title="Blog · Astro Pages Blog" description="All English articles from the Astro Pages Blog." lang="en" alternateHref="/blog/fr/">
+  <section class="container page-hero">
+    <p class="eyebrow">Blog</p>
+    <h1>All articles</h1>
+    <p class="lede">
+      Technical notes, examples, and experiments. Each article carries a tag so the list can later evolve into filtering, search, or collections.
+    </p>
+    <div class="tag-cloud" aria-label="Available article tags">
+      {tags.map((tag) => <span class="tag">{tag}</span>)}
+    </div>
+  </section>
+
+  <section class="container article-list" aria-label="Blog articles">
+    {posts.map((post) => (
+      <a class="article-row card" href={post.href}>
+        <div>
+          <div class="article-meta">
+            <span>{post.lang.toUpperCase()}</span>
+            <span aria-hidden="true">·</span>
+            <time datetime={post.date}>{post.date}</time>
+          </div>
+          <h2>{post.title}</h2>
+          <p>{post.description}</p>
+        </div>
+        <span class="tag">{post.tag}</span>
+      </a>
+    ))}
+  </section>
+</BaseLayout>
