@@ -17,6 +17,10 @@ const languageScript = `${import.meta.env.BASE_URL}js/language.js`;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+    />
     <title>{title}</title>
   </head>
   <body data-lang={lang}>
@@ -25,6 +29,7 @@ const languageScript = `${import.meta.env.BASE_URL}js/language.js`;
       <slot />
     </main>
     <Footer />
+    <script type="module" src={`${import.meta.env.BASE_URL}js/copy-code.js`}></script>
     <script type="module" src={languageScript}></script>
   </body>
 </html>

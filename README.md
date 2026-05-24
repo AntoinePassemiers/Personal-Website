@@ -1,5 +1,7 @@
 # Fancy Astro GitHub Pages Blog
 
+## Installation
+
 A modern Astro skeleton for GitHub Pages with:
 
 - reusable navbar/footer/layouts, avoiding duplicated HTML
