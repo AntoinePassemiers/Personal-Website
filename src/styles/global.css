@@ -277,6 +277,34 @@ section { margin: 56px 0; }
   background: #05060d;
 }
 
+.game-actions {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.phaser-game {
+  width: min(100%, 620px);
+  margin: 2rem auto;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.phaser-game canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+#fullscreen-button {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 999px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+}
+
 .site-footer {
   border-top: 1px solid var(--line);
   color: var(--muted);

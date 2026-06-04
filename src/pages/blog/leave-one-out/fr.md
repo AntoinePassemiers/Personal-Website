@@ -44,7 +44,6 @@ for k, (train_index, test_index) in tqdm.tqdm(list(enumerate(loo.split(X, y)))):
     model.fit(X_train, y_train)
     y_pred.append(model.predict(X_test))
     y_target.append(y_test[0])
-    print(model.)
 
 # Compute performance metric
 tn, fp, fn, tp = confusion_matrix(
@@ -112,6 +111,9 @@ On voit immédiatement que la fonction de Hinge ne dépend plus de $b$, et est c
 
 TODO
 
+98 -> -100
+427 -> nan
+
 ## Le problème s'étend à d'autres modèles
 
 Mon exemple peut paraître artéfactuel voire complètement artificiel. Si vous pensez que ce phénomène de biais distributionnel ne pourra jamais vous affecter, détrompez-vous. Prenons un modèle plus simple, et une autre métrique de performance:
@@ -150,7 +152,7 @@ for k, (train_index, test_index) in tqdm.tqdm(list(enumerate(loo.split(X, y)))):
 print('AUROC : %f' % roc_auc_score(y_target, y_pred))
 ```
 
-Ici, l'AUROC est de 0, ce qui correspond à une performance parfaitement et négativement corrélée à la réalité. En d'autres termes, il suffirait d'inverser les prédictions pour obtenir une performance parfaite (ou de se tromper dans l'indiçage: `[:, 0]` au lieu de `[:, 1]`).
+Ici, l'AUROC est de 0, ce qui correspond à une performance parfaitement et négativement corrélée à la réalité. En d'autres termes, il suffirait d'inverser les prédictions (ou de se tromper dans l'indiçage: `[:, 0]` au lieu de `[:, 1]`) pour obtenir une performance parfaite.
 
 L'explication est ici beaucoup plus simple que pour la SVM: Naive Bayes prend directement et explicitement en compte les probabilités *a priori* dans son modèle:
 $$
