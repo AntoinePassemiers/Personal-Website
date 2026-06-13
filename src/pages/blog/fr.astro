@@ -18,6 +18,12 @@ const posts = Object.entries(modules)
   .filter((post) => post.lang === 'fr')
   .sort((a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf());
 
+const formatDate = (date) =>
+  new Intl.DateTimeFormat('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(new Date(date));
 const tags = [...new Set(posts.map((post) => post.tag))].sort();
 ---
 <BaseLayout title="Blog · Astro Pages" description="Tous les articles français du blog Astro Pages." lang="fr" alternateHref="/blog/en/">
@@ -37,9 +43,9 @@ const tags = [...new Set(posts.map((post) => post.tag))].sort();
       <a class="article-row card" href={post.href}>
         <div>
           <div class="article-meta">
-            <span>{post.lang.toUpperCase()}</span>
-            <span aria-hidden="true">·</span>
-            <time datetime={post.date}>{post.date}</time>
+            <time datetime={new Date(post.date).toISOString()}>
+              {formatDate(post.date)}
+            </time>
           </div>
           <h2>{post.title}</h2>
           <p>{post.description}</p>

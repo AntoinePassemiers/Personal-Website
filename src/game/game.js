@@ -3,6 +3,11 @@ import Phaser from 'phaser';
 import { Tile } from './tile.js';
 import { Grid } from './grid.ts';
 
+const ROUND_TARGETS = [40, 55, 70, 90, 115, 140, 180, 250, 400, 650, 1000];
+
+const DEFAULT_TURNS_PER_ROUND = 4;
+const DEFAULT_DISCARDS_PER_ROUND = 4;
+
 const BOARD_SIZE = 15;
 const TILE_SIZE = 36;
 
@@ -37,6 +42,19 @@ class ScrabbleScene extends Phaser.Scene {
   async create() {
 
     await this.loadDictionary();
+
+    this.roundIndex = 0;
+    this.roundScore = 0;
+    this.totalScore = 0;
+
+    this.maxTurnsPerRound = DEFAULT_TURNS_PER_ROUND;
+    this.maxDiscardsPerRound = DEFAULT_DISCARDS_PER_ROUND;
+
+    this.turnsLeft = this.maxTurnsPerRound;
+    this.discardsLeft = this.maxDiscardsPerRound;
+
+    this.isRoundOver = false;
+    this.isGameOver = false;
 
     this.bag = Phaser.Utils.Array.Shuffle(createBag());
     this.hand = [];
@@ -177,31 +195,71 @@ class ScrabbleScene extends Phaser.Scene {
   }
 
   drawUi() {
-    this.statusText = this.add.text(MENU_X, MENU_Y, 'Move with arrows.', {
+    this.roundText = this.add.text(MENU_X, MENU_Y, '', {
+      fontFamily: 'Arial',
+      fontSize: '20px',
+      color: '#e2e8f0'
+    });
+
+    this.scoreText = this.add.text(MENU_X, MENU_Y + 36, '', {
       fontFamily: 'Arial',
       fontSize: '16px',
       color: '#e2e8f0',
       wordWrap: { width: 220 }
     });
 
-    this.scoreText = this.add.text(MENU_X, MENU_Y + 70, 'Score: 0', {
+    this.turnsText = this.add.text(MENU_X, MENU_Y + 90, '', {
       fontFamily: 'Arial',
-      fontSize: '20px',
+      fontSize: '16px',
       color: '#e2e8f0'
+    });
+
+    this.discardsText = this.add.text(MENU_X, MENU_Y + 122, '', {
+      fontFamily: 'Arial',
+      fontSize: '16px',
+      color: '#e2e8f0'
+    });
+
+    this.statusText = this.add.text(MENU_X, MENU_Y + 170, 'Move with arrows. Type A-Z to place letters.', {
+      fontFamily: 'Arial',
+      fontSize: '15px',
+      color: '#94a3b8',
+      wordWrap: { width: 220 }
     });
 
     this.helpText = this.add.text(
       MENU_X,
-      MENU_Y + 110,
+      MENU_Y + 250,
       'A-Z: place letter\nSpace: toggle direction\nDelete: erase\nEnter: submit\nF: fullscreen',
       {
         fontFamily: 'Arial',
-        fontSize: '15px',
-        color: '#94a3b8',
+        fontSize: '14px',
+        color: '#64748b',
         lineSpacing: 8,
         wordWrap: { width: 220 }
       }
     );
+
+    this.updateRoundUi();
+  }
+
+  getCurrentRoundTarget() {
+    return ROUND_TARGETS[this.roundIndex] ?? ROUND_TARGETS[ROUND_TARGETS.length - 1];
+  }
+
+  updateRoundUi() {
+    const target = this.getCurrentRoundTarget();
+
+    this.roundText.setText(`Round ${this.roundIndex + 1}`);
+
+    this.scoreText.setText(
+      `Round target: ${target}\n` +
+      `Round score: ${this.roundScore}/${target}\n` +
+      `Total score: ${this.totalScore}`
+    );
+
+    this.turnsText.setText(`Turns left: ${this.turnsLeft}`);
+    this.discardsText.setText(`Discards left: ${this.discardsLeft}`);
   }
 
   toggleCursorDirection() {
@@ -306,6 +364,11 @@ class ScrabbleScene extends Phaser.Scene {
         return;
       }
 
+      if (key === '*') {
+        this.discardHand();
+        return;
+      }
+
       if (event.key === 'Backspace' || event.key === 'Delete') {
         event.preventDefault();
         this.removeLastPlacedTile();
@@ -337,6 +400,11 @@ class ScrabbleScene extends Phaser.Scene {
   }
 
   placeLetter(letter) {
+
+    if (this.modal || this.isGameOver) {
+      return;
+    }
+
     if (this.board[this.cursorRow][this.cursorCol]) {
       this.statusText.setText('This square is already occupied.');
       return;
@@ -538,7 +606,35 @@ class ScrabbleScene extends Phaser.Scene {
     return virtualTiles.every((tile) => tile.boardCol === virtualTiles[0].boardCol);
   }
 
+  discardHand() {
+    if (this.discardsLeft <= 0) {
+      this.statusText.setText('No discards left.');
+      return;
+    }
+
+    if (this.placedThisTurn.length > 0) {
+      this.statusText.setText('Erase or submit placed tiles before discarding.');
+      return;
+    }
+
+    this.bag.push(...this.hand);
+    this.bag = Phaser.Utils.Array.Shuffle(this.bag);
+
+    this.hand = [];
+    this.discardsLeft -= 1;
+
+    this.dealHand();
+    this.updateRoundUi();
+
+    this.statusText.setText('Hand discarded.');
+  }
+
   submitTurn() {
+
+    if (this.modal || this.isGameOver) {
+      return;
+    }
+
     if (this.placedThisTurn.length === 0) {
       this.statusText.setText('Place at least one tile.');
       return;
@@ -586,12 +682,152 @@ class ScrabbleScene extends Phaser.Scene {
     this.animateValidatedTiles();
 
     this.placedThisTurn = [];
-    this.score += score;
+    this.roundScore += score;
+    this.totalScore += score;
+    this.turnsLeft -= 1;
 
     this.dealHand();
+    this.updateRoundUi();
 
-    this.scoreText.setText(`Score: ${this.score}`);
     this.statusText.setText(`Accepted: ${word} (+${score})`);
+
+    this.checkRoundState();
+  }
+
+  checkRoundState() {
+    if (this.roundScore >= this.getCurrentRoundTarget()) {
+      this.completeRound();
+      return;
+    }
+
+    if (this.turnsLeft <= 0) {
+      this.showGameOverWindow();
+    }
+  }
+
+  completeRound() {
+    this.isRoundOver = true;
+
+    this.showModal({
+      title: 'Round complete!',
+      body: `You reached ${this.roundScore}/${this.getCurrentRoundTarget()} points.`,
+      buttonText: 'Next round',
+      onConfirm: () => this.startNextRound()
+    });
+  }
+
+  startNextRound() {
+    this.closeModal();
+
+    this.roundIndex += 1;
+
+    if (this.roundIndex >= ROUND_TARGETS.length) {
+      this.showModal({
+        title: 'You won!',
+        body: `You completed all rounds.\nFinal score: ${this.totalScore}`,
+        buttonText: 'Restart',
+        onConfirm: () => this.restartGame()
+      });
+      return;
+    }
+
+    this.roundScore = 0;
+    this.turnsLeft = this.maxTurnsPerRound;
+    this.discardsLeft = this.maxDiscardsPerRound;
+    this.isRoundOver = false;
+
+    this.updateRoundUi();
+
+    this.statusText.setText(
+      `Round ${this.roundIndex + 1}. Target: ${this.getCurrentRoundTarget()}`
+    );
+  }
+
+  showGameOverWindow() {
+    this.isGameOver = true;
+
+    this.showModal({
+      title: 'Game over',
+      body: `You scored ${this.roundScore}/${this.getCurrentRoundTarget()} this round.\nTotal score: ${this.totalScore}`,
+      buttonText: 'Restart',
+      onConfirm: () => this.restartGame()
+    });
+  }
+
+  showModal({ title, body, buttonText, onConfirm }) {
+    this.input.keyboard.enabled = false;
+
+    this.modalConfirm = onConfirm;
+
+    this.modal = this.add.container(
+      this.scale.width / 2,
+      this.scale.height / 2
+    );
+
+    const overlay = this.add.rectangle(
+      0,
+      0,
+      this.scale.width,
+      this.scale.height,
+      0x020617,
+      0.78
+    ).setOrigin(0.5);
+
+    const panel = this.add.rectangle(
+      0,
+      0,
+      420,
+      250,
+      0x0f172a
+    )
+      .setStrokeStyle(2, 0x38bdf8)
+      .setOrigin(0.5);
+
+    const titleText = this.add.text(0, -80, title, {
+      fontFamily: 'Arial',
+      fontSize: '28px',
+      color: '#f8fafc'
+    }).setOrigin(0.5);
+
+    const bodyText = this.add.text(0, -25, body, {
+      fontFamily: 'Arial',
+      fontSize: '16px',
+      color: '#cbd5e1',
+      align: 'center',
+      wordWrap: { width: 340 }
+    }).setOrigin(0.5);
+
+    const button = this.add.text(0, 70, buttonText, {
+      fontFamily: 'Arial',
+      fontSize: '18px',
+      color: '#020617',
+      backgroundColor: '#7dd3fc',
+      padding: { x: 18, y: 10 }
+    })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+
+    button.on('pointerdown', () => {
+      this.modalConfirm?.();
+    });
+
+    this.modal.add([overlay, panel, titleText, bodyText, button]);
+    this.modal.setDepth(1000);
+  }
+
+  closeModal() {
+    if (this.modal) {
+      this.modal.destroy(true);
+      this.modal = null;
+    }
+
+    this.modalConfirm = null;
+    this.input.keyboard.enabled = true;
+  }
+
+  restartGame() {
+    this.closeModal();
+    this.scene.restart();
   }
 
   getMainWord() {

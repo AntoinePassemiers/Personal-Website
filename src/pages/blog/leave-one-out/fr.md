@@ -109,10 +109,32 @@ On voit immédiatement que la fonction de Hinge ne dépend plus de $b$, et est c
 
 ## L'erreur numérique
 
-TODO
+Dans `libsvm`, le terme de biais est calculé sur base des points "libres":
+[https://github.com/scikit-learn/scikit-learn/blob/bd0dbbd22ecf8e3198a40fc20694adc9435033f3/sklearn/svm/src/libsvm/svm.cpp#L1126](https://github.com/scikit-learn/scikit-learn/blob/bd0dbbd22ecf8e3198a40fc20694adc9435033f3/sklearn/svm/src/libsvm/svm.cpp#L1126).
 
-98 -> -100
-427 -> nan
+Un point est dit "libre" lorsque le multiplicateur de Lagrange associé est strictement compris entre $0$ et $C_i$:
+```c++
+if(alpha[i] >= get_C(i))
+    alpha_status[i] = UPPER_BOUND;
+else if(alpha[i] <= 0)
+    alpha_status[i] = LOWER_BOUND;
+else alpha_status[i] = FREE;
+```
+Comme les valeurs $C_i$ sont très faibles, il y a de fortes chances que la majorité voire tous les $\alpha_i$ aient saturé. En revanche, les SVMs sont soumis à la contrainte suivante:
+$$
+\sum_i y_i \alpha_i = 0,
+$$
+ce qui implique probablement de retirer une valeur infinitésimale à au moins un des points $i$ pour satisfaire cette contrainte. Ce point devient alors un point libre, qui définira $b=1$ lorsque $y_i=1$, ou $b=-1$ lorsque $y_i=-1$.
+
+À présent, nous savons que:
+- La fonction de Hinge a grossièrement la même valeur pour $b=1$ et $b=-1$, rendant ces deux solutions interchangeables, à une erreur numérique près.
+- La contrainte $\sum_i y_i \alpha_i = 0$ dépend des valeurs $y_i$.
+- Les points libres sont déterminés par l'erreur numérique, et ce, de façon déterministe.
+
+Nous pouvons en conclure que la valeur de $b$ dépend des valeurs $y_i$, et donc des valeurs $n$ et $n^+$ en résumé. Dans notre exemple précis, $b=-1$ lorsque $p=\frac{165}{424}$ et $b=1$ lorsque $p=\frac{164}{424}$, produisant un MCC de 100\%. Mais dans d'autres circonstances, la situation pourrait être toute autre:
+- Si on remplace la valeur de `n_positives` par 98, alors le MCC devient -100\%, révélant une situation opposée au scénario de base: $b=1$ lorsque $p=\frac{98}{424}$ et $b=-1$ lorsque $p=\frac{97}{424}$. Ici, la performance est parfaitement et négativement corrélée avec la réalité.
+- Si on remplace la valeur de `n` par 427, alors le MCC devient `nan`, car $b=1$ à la fois lorsque $p=\frac{165}{426}$ et lorsque $p=\frac{164}{426}$. Dans ce cas, il n'y a aucune corrélation entre les prédictions et la réalité.
+- Si on remplace la valeur de `n` par 500, alors le MCC devient `nan`, car $b=-1$ à la fois lorsque $p=\frac{165}{499}$ et lorsque $p=\frac{164}{499}$. Dans ce cas, il n'y a aucune corrélation entre les prédictions et la réalité.
 
 ## Le problème s'étend à d'autres modèles
 
@@ -167,11 +189,20 @@ $P(Y=1 | X)$ varie donc principalement suite aux variations de $P(Y=1)$, qui aug
 
 ## Ce qu'en dit la littérature
 
-Ce problème, dans sa forme plus générale, pourrait se traduire par une corrélation négative entre les probabilités *a priori* des classes que l'on cherche à identifier, et la classe à laquelle appartient la donnée de validation. Notons que le problème ne se limite par à la classification, puisque les problèmes de classification ne sont qu'un cas particulier de la régression, ou plutôt: tout problème de régression peut être réduit en problème de classification, en appliquant des seuils arbitraires à la variable expliquée afin de la rendre discrète (ou catégorielle). 
+Ce problème, dans sa forme plus générale, pourrait se traduire par une corrélation négative entre les probabilités *a priori* des classes que l'on cherche à identifier, et la classe à laquelle appartient la donnée de validation. Notons que le problème ne se limite pas à la classification, puisque les problèmes de classification ne sont qu'un cas particulier de la régression, ou plutôt: tout problème de régression peut être réduit en problème de classification, en appliquant des seuils arbitraires à la variable expliquée afin de la rendre discrète (ou catégorielle). 
 
-Cette corrélation négative est pointée du doigt d'un un papier récent de Austin et al.[^1], où les auteurs proposent une version revisitée de LOO, qu'ils appellent "rebalanced LOOCV".
+Quoi qu'il en soit, cette corrélation négative est pointée du doigt dans un papier récent de Austin et al.[^1], où les auteurs proposent une version revisitée de LOO, qu'ils appellent "rebalanced LOOCV".
 
+Des simulations effectuées par Geroldinger et al. montrent que LOO est inadapté pour estimer l'aire sous la courbe ROC (AUROC, également appelé C-statistique), en particulier pour une régression logistique avec régularisation L2.[^2]
+
+Bien plus tôt, Ron Kohavi avait déjà suggéré que la cross-validation stratifiée par 10-fold est plus adaptée que la cross-validation LOO pour estimer la précision d'un modèle, et ce lorsque le modèle sous-jacent est un arbre de décision (algorithme C4.5) ou un Naive Bayes.[^3]
+
+Durant la même période, Jun Shao a trouvé un résultat théorique intéressant: la probabilité de sélectionner le meilleur modèle par cross-validation LOO ne converge pas vers 1 lorsque $n \rightarrow \infty$. Pour y parvenir, il faut exclure $n_v$ observations du jeu d'apprentissage, ce qui s'apparente à une cross-validation "leave-$n_v$-out", avec comme contrainte que $\frac{n_v}{n} \rightarrow 1$ lorsque $n \rightarrow \infty$.[^4]
+
+En conclusion, garantir une taille suffisante pour le jeu de données de validation semble plus prudent, mais peut conduire à une variance plus élevée de l'estimation de la performance (précision, AUROC, etc.). Pour y remédier, une solution simple est de répéter la cross-validation plusieurs fois, ou de la coupler avec du bootstrapping.
 
 
 [^1]: Austin, George I., Itsik Pe’er, and Tal Korem. "Distributional bias compromises leave-one-out cross-validation." _Science Advances_ 11.48 (2025): eadx6976.
-
+[^2]: Geroldinger, Angelika, et al. "Leave-one-out cross-validation, penalization, and differential bias of some prediction model performance measures—a simulation study." _Diagnostic and Prognostic Research_ 7.1 (2023): 9.
+[^3]: Kohavi, Ron. "A study of cross-validation and bootstrap for accuracy estimation and model selection." _Ijcai._ Vol. 14. No. 2. 1995.
+[^4]: Shao, Jun. "Linear model selection by cross-validation." _Journal of the American statistical Association_ 88.422 (1993): 486-494.
