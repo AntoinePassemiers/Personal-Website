@@ -1,11 +1,14 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getTagClass } from '../../utils/tags.js';
 
 const modules = import.meta.glob('./**/*.md', { eager: true });
+
 const posts = Object.entries(modules)
   .map(([path, module]) => {
     const frontmatter = module.frontmatter;
     const slug = path.replace('./', '').replace('/index.md', '').replace('.md', '');
+
     return {
       title: frontmatter.title,
       description: frontmatter.description,
@@ -24,8 +27,10 @@ const formatDate = (date) =>
     month: 'long',
     day: 'numeric'
   }).format(new Date(date));
+
 const tags = [...new Set(posts.map((post) => post.tag))].sort();
 ---
+
 <BaseLayout title="Blog · Astro Pages" description="Tous les articles français du blog Astro Pages." lang="fr" alternateHref="/blog/en/">
   <section class="container page-hero">
     <p class="eyebrow">Blog</p>
@@ -33,8 +38,11 @@ const tags = [...new Set(posts.map((post) => post.tag))].sort();
     <p class="lede">
       Notes techniques, exemples et expérimentations. Chaque article possède un tag pour faciliter ensuite le filtrage, la recherche ou les collections.
     </p>
+
     <div class="tag-cloud" aria-label="Tags disponibles">
-      {tags.map((tag) => <span class="tag">{tag}</span>)}
+      {tags.map((tag) => (
+        <span class={getTagClass(tag)}>{tag}</span>
+      ))}
     </div>
   </section>
 
@@ -50,7 +58,8 @@ const tags = [...new Set(posts.map((post) => post.tag))].sort();
           <h2>{post.title}</h2>
           <p>{post.description}</p>
         </div>
-        <span class="tag">{post.tag}</span>
+
+        <span class={getTagClass(post.tag)}>{post.tag}</span>
       </a>
     ))}
   </section>
