@@ -31,6 +31,50 @@ const formatDate = (date) =>
 const tags = [...new Set(posts.map((post) => post.tag))].sort();
 ---
 
+<script>
+  const selectedTags = new Set();
+
+  const filterButtons = document.querySelectorAll('[data-tag-filter]');
+  const articles = document.querySelectorAll('[data-post-tags]');
+
+  function updateFilters() {
+    articles.forEach((article) => {
+      const tags = article.dataset.postTags
+        .split(',')
+        .map((tag) => tag.trim());
+
+      const shouldShow =
+        selectedTags.size === 0 ||
+        tags.some((tag) => selectedTags.has(tag));
+
+      article.hidden = !shouldShow;
+    });
+
+    filterButtons.forEach((button) => {
+      const tag = button.dataset.tagFilter;
+      const isSelected = selectedTags.has(tag);
+
+      button.classList.toggle('is-selected', isSelected);
+      button.classList.toggle('is-muted', selectedTags.size > 0 && !isSelected);
+      button.setAttribute('aria-pressed', String(isSelected));
+    });
+  }
+
+  filterButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const tag = button.dataset.tagFilter;
+
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag);
+      } else {
+        selectedTags.add(tag);
+      }
+
+      updateFilters();
+    });
+  });
+</script>
+
 <BaseLayout title="Blog · Astro Pages Blog" description="All English articles from the Astro Pages Blog." lang="en" alternateHref="/blog/fr/">
   <section class="container page-hero">
     <p class="eyebrow">Blog</p>
@@ -41,14 +85,21 @@ const tags = [...new Set(posts.map((post) => post.tag))].sort();
 
     <div class="tag-cloud" aria-label="Available article tags">
       {tags.map((tag) => (
-        <span class={getTagClass(tag)}>{tag}</span>
+        <button
+          class={`${getTagClass(tag)} tag-filter`}
+          type="button"
+          data-tag-filter={tag}
+          aria-pressed="false"
+        >
+          {tag}
+        </button>
       ))}
     </div>
   </section>
 
   <section class="container article-list" aria-label="Blog articles">
     {posts.map((post) => (
-      <a class="article-row card" href={post.href}>
+      <a class="article-row card" href={post.href} data-post-tags={post.tag}>
         <div>
           <div class="article-meta">
             <time datetime={new Date(post.date).toISOString()}>

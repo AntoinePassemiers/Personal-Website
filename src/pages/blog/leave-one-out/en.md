@@ -1,12 +1,14 @@
 ---
 layout: ../../../layouts/PostLayout.astro
 title: Why You Should Stop Using Leave-One-Out Cross-Validation
-description: How leave-one-out introduces distributional bias into your training data
+description: How leave-one-out introduces distributional biases into your training data
 date: 2026-05-24
 author: Antoine Passemiers
 lang: en
 tag: Machine Learning
 ---
+
+## A simple example
 
 The following piece of code performs a simple leave-one-out (LOO) cross-validation of a support vector machine (SVM) on randomly generated data. Let us assume that, because of automatic hyperparameter optimization, LLM-generated code, lack of experience, or a careless mistake on the developer’s part, the regularization parameter is much lower than it should be (`C=1e-6`):
 

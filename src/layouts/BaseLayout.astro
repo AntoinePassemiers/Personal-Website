@@ -30,7 +30,8 @@ const languageScript = `${import.meta.env.BASE_URL}js/language.js`;
       <slot />
     </main>
     <Footer />
-    <script type="module" src={`${import.meta.env.BASE_URL}js/copy-code.js`}></script>
+    <script type="module" src={`${import.meta.env.BASE_URL}js/code-blocks.js`}></script>
+    <script type="module" src={`${import.meta.env.BASE_URL}js/section-links.js`}></script>
     <script type="module" src={languageScript}></script>
   </body>
 </html>

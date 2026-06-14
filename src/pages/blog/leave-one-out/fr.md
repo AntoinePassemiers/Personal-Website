@@ -8,6 +8,8 @@ lang: fr
 tag: Machine Learning
 ---
 
+## Un exemple simple
+
 Le morceau de code suivant effectue une simple cross-validation d'une machine à vecteurs de support (SVM) par leave-one-out (LOO) sur des données générées aléatoirement. Supposons que par hyper-optimisation automatique, génération par un LLM, par manque d'expérience ou à cause d'une erreur d'inattention de la part du développeur, le paramètre de régularisation est beaucoup plus faible qu'il ne devrait (`C=1e-6`):
 
 ```python
