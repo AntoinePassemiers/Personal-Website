@@ -1,5 +1,6 @@
 ---
 import { getTagClass } from '../utils/tags.js';
+import DifficultyGauge from "../components/DifficultyGauge.astro";
 import BaseLayout from './BaseLayout.astro';
 
 const { frontmatter } = Astro.props;
@@ -34,6 +35,11 @@ const formattedDate = frontmatter.date
         <span class={getTagClass(frontmatter.tag)}>{frontmatter.tag}</span>
       </p>
     )}
+
+    <DifficultyGauge
+      level={frontmatter.difficulty ?? 1}
+      lang={frontmatter.lang ?? "en"}
+    />
 
     <slot />
   </article>

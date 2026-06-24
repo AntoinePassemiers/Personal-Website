@@ -32,7 +32,7 @@ const t = labels[normalizedLang];
 const links = [
   { href: `/${normalizedLang}/`, label: t.home },
   { href: `/blog/${normalizedLang}/`, label: t.blog },
-  { href: `/game/${normalizedLang}/`, label: t.game }
+  //{ href: `/game/${normalizedLang}/`, label: t.game }
 ];
 const fallbackAlternate = currentPath.replace(new RegExp(`/${normalizedLang}/?$`), `/${otherLang}/`);
 const switchHref = alternateHref ?? fallbackAlternate;
@@ -41,7 +41,7 @@ const switchHref = alternateHref ?? fallbackAlternate;
   <nav class="container nav" aria-label="Main navigation">
     <a class="brand" href={withBase(`/${normalizedLang}/`)}>
       <span class="brand-mark" aria-hidden="true">✦</span>
-      <span>Astro Pages</span>
+      <span>AP ²</span>
     </a>
     <div class="nav-links">
       {links.map((link) => {

@@ -3,20 +3,20 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 const base = import.meta.env.BASE_URL;
 const withBase = (path) => `${base}${path.replace(/^\//, '')}`;
 ---
-<BaseLayout title="Astro Pages Blog" lang="en" alternateHref="/fr/">
+<BaseLayout title="AP ²" lang="en" alternateHref="/fr/">
   <section class="container hero">
     <div>
-      <p class="eyebrow">GitHub Pages ready</p>
-      <h1>A polished static blog without duplicated HTML.</h1>
+      <p class="eyebrow">Antoine Passemiers' Astro Pages</p>
+      <h1>AP ²</h1>
       <p class="lede">
-        Astro gives this GitHub Pages blog reusable components, Markdown articles,
-        bilingual pages, code examples, and client-side interactive pages.
+        Here, I share things that are close to my heart, such as interesting findings, summaries of technical books, or remnants of old projects I created during my studies or in my free time.
       </p>
       <div class="button-row">
-        <a class="button" href={withBase('/blog/code-examples/en/')}>Read code article</a>
-        <a class="button secondary" href={withBase('/game/en/')}>Play tiny game</a>
+        <a class="button" href={withBase('/blog/en/')}>Read blog posts</a>
+        <!-- <a class="button secondary" href={withBase('/game/en/')}>Play tiny game</a> -->
       </div>
     </div>
+    <!--
     <aside class="card hero-card stack">
       <p class="eyebrow">Architecture</p>
       <h3>One navbar. Many pages.</h3>
@@ -25,8 +25,10 @@ const withBase = (path) => `${base}${path.replace(/^\//, '')}`;
         are authored once and reused everywhere at build time.
       </p>
     </aside>
+    -->
   </section>
 
+  <!--
   <section class="container">
     <p class="eyebrow">Featured</p>
     <div class="grid">
@@ -47,4 +49,6 @@ const withBase = (path) => `${base}${path.replace(/^\//, '')}`;
       </a>
     </div>
   </section>
+  -->
+
 </BaseLayout>
