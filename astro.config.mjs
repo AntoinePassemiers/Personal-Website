@@ -6,7 +6,7 @@ import rehypeKatex from "rehype-katex";
 
 export default defineConfig({
   site: 'https://AntoinePassemiers.github.io',
-  base: '/Personal-Website',
+  base: '/Personal-Website/',
   integrations: [mdx()],
   markdown: {
     remarkPlugins: [remarkMath],
