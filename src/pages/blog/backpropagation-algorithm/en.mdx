@@ -9,6 +9,8 @@ tag: Machine Learning
 difficulty: 1
 ---
 
+import ResponsiveImage from '../../../components/ResponsiveImage.astro';
+
 In the age of generative AI, it may be important to understand how modern large language models, and more largely neural networks, are actually trained. Neural networks have become incredibly complex over time, but this complexity boils down to the data collection process, architectural design and implementation. In fact, the mathematics needed to understand the training of neural networks is quite simple: all you need to know is how to work with derivatives, a concept you probably remember from high school. Indeed, the *backpropagation algorithm*, which underlies the training of any model, is solely based on derivatives.
 
 ## Neural networks are not "networks of neurons"
@@ -25,13 +27,11 @@ I'm going to dispel several common misconceptions right off the bat. Do not thin
 
 Neural networks are nothing more than compositions of mathematical functions. Let's start with the simplest example possible:
 
-<figure>
-    <picture>
-        <source srcset="/images/backpropagation-algorithm/dark/forward-1.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/light/forward-1.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/dark/formard-1.svg" alt="MLP forward pass" />
-    </picture>
-</figure>
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="forward-1.svg"
+  alt="Forward pass"
+/>
 
 Here, $X$ is a data matrix. If you don't remember what a matrix is, you will definitely need a refresher first: https://en.wikipedia.org/wiki/Matrix_(mathematics).
 If you don't have the time, let's make a super accelerated course about matrices:
@@ -55,13 +55,11 @@ $$
 $$
 As can be seen immediately from the formula, the function is applied on each element of the matrix *independently*. Here, the point is not to couple the variables, but to *transform* them. To be more specific, this function forces the output to be bounded between 0 and 1. This is very convenient if the model is designed for estimating probabilities (e.g., the probability that a pictured animal is a cat, a dog, a naked mole-rat or a tardigrade). As we will see in the next section, the activation function can have a second, much more important role in the model. This is related to the fact that the function is *non-linear*. Non-linear means that it cannot be represented as a straight line. Here is the Sigmoid function:
 
-<figure>
-    <picture>
-        <source srcset="/images/backpropagation-algorithm/dark/sigmoid.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/light/sigmoid.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/dark/sigmoid.svg" alt="Sigmoid function" />
-    </picture>
-</figure>
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="sigmoid.svg"
+  alt="Sigmoid function"
+/>
 
 The Sigmoid function is indeed not a straight line, but a curvy, S-like functions. It's no coincidence that sigmoid means "S-shaped" in Greek.
 
@@ -73,13 +71,11 @@ The second limitation is that it only considers the **linear relationship betwee
 
 To account for the *non-linear* relationship between variables, we need to apply activation functions (which are purposely designed to be non-linear) **before** combining the variables with a linear operation. Let's add a fully-connected operation after our activation function. Now that the model no longer ends up with an activation function, the outputs are no longer probabilities bounded between 0 and 1. The natural solution is to add another activation function as well, which gives this new architecture:
 
-<figure>
-    <picture>
-        <source srcset="/images/backpropagation-algorithm/dark/forward-no-loss.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/light/forward-no-loss.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/dark/forward-no-loss.svg" alt="MLP forward pass" />
-    </picture>
-</figure>
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="forward-no-loss.svg"
+  alt="MLP forward pass"
+/>
 
 A variant of this two-layer architecture has been proven to be suitable for approximating almost any function, as long as the size of the matrices is large enough. *To be more accurate, it can approximate continuous functions with compact support under specific conditions, but this doesn't matter much.* This important result, called the Universal Approximation Theorem [^3], is a theoretical foundation for using neural networks in diverse and unrelated problems: neural networks can adapt to almost any data.
 
@@ -120,25 +116,21 @@ It is easy to see that $\ell$ is equal to 0 when the model is always perfectly r
 
 During the training phase, the overall architecture looks like this:
 
-<figure>
-    <picture>
-        <source srcset="/images/backpropagation-algorithm/dark/forward.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/light/forward.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/dark/forward.svg" alt="MLP forward pass" />
-    </picture>
-</figure>
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="forward.svg"
+  alt="MLP forward pass"
+/>
 
 In case you noticed, I implicitly assumed that multiple animals can be found in a single image. This was made on purpose, so I did not have to introduce another activation function, called the Softmax function. What does that have to do with it? Well, assuming there is a single pictured animal, then the probabities should sum to one across species: $\sum_j \hat{Y}_{ij} = 1 \quad \forall i$. There is an activation function specifically designed for guaranteeing this constraint: Softmax. I will not go over the details, but the maths of Softmax are almost identical to the Sigmoid case.
 
 Before we move on to the most technical part of this post, let's make a small modification to the previous figure. Let's combine the second Sigmoid function with the Loss function into a single function (a composition of the two), and represent the latter as a single block in this new figure:
 
-<figure>
-    <picture>
-        <source srcset="/images/backpropagation-algorithm/dark/forward-combined.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/light/forward-combined.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/dark/forward-combined.svg" alt="MLP forward pass" />
-    </picture>
-</figure>
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="forward-combined.svg"
+  alt="MLP forward pass"
+/>
 
 Mathematically, it does not change anything, the new "Sigmoid$_2$ + Loss" block basically performs the 2 operations in a row, exactly as previously. The change is only conceptual, but will help us in the next section at two levels:
 - Simplify derivatives and make the calculations less tedious.
@@ -167,13 +159,11 @@ Let's note that in our example, there are $m \times h$ parameter values in $U$, 
 
 For now, let's abstract away some mathematical details from previous figures and simplify the notation using matrices $Z^{(1)}$, $Z^{(2)}$ and $Z^{(3)}$. Let's denote the loss function by $\ell$. The **backpropagation algorithm** consists in computing the gradients in the way depicted in the figure below:
 
-<figure>
-    <picture>
-        <source srcset="/images/backpropagation-algorithm/dark/backprop-simplified.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/light/backprop-simplified.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/dark/backprop-simplified.svg" alt="Simplified backpropagation" />
-    </picture>
-</figure>
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="forward-simplified.svg"
+  alt="Simplified forward pass"
+/>
 
 This is precisely why the gradient estimation algorithm is called the backpropagation algorithm: because it propagates the information obtained at the end (the right) of the network back to the start (the left), computing the gradient of $U$ and $V$ along the way. This approach is valid because the chain rule can be applied on each function successively.
 
@@ -213,13 +203,11 @@ We end up with the following building block, which defines:
 - The **backward pass**: how to compute the gradient of that input, showed by the arrow going from right to left.
 To make it more obvious that the maths are the same regardless of the rest of the architecture of the model, I dropped the $^(3)$ from the $Z^(3)$ in the figure:
 
-<figure>
-    <picture>
-        <source srcset="/images/backpropagation-algorithm/dark/backprop-final-block.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/light/backprop-final-block.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/dark/backprop-final-block.svg" alt="Forward pass and backward pass of the final block" />
-    </picture>
-</figure>
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="backprop-final-block.svg"
+  alt="Forward pass and backward pass of the final block"
+/>
 
 If you've made it this far, congrats! The next sections will simply repeat the same logic on other building blocks, so there won't be much new.
 
@@ -261,13 +249,11 @@ $$
 
 We now have a building block defining the forward pass, as well as the backward pass:
 
-<figure>
-    <picture>
-        <source srcset="/images/backpropagation-algorithm/dark/backprop-fc-block.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/light/backprop-fc-block.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/dark/backprop-fc-block.svg" alt="Forward pass and backward pass of the Fully Connected block" />
-    </picture>
-</figure>
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="backprop-fc-block.svg"
+  alt="Forward pass and backward pass of the Fully Connected block"
+/>
 
 Given an input $Z$, the output of the function is $ZV$. Given a gradient $G$ received during the backward pass, the gradient of parameter matrix $V$ is equal to $Z^T G$, and the gradient to be backpropagated is $GV^T$.
 
@@ -293,13 +279,11 @@ $$
 
 The Sigmoid building block is illustrated below:
 
-<figure>
-    <picture>
-        <source srcset="/images/backpropagation-algorithm/dark/backprop-sigmoid-block.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/light/backprop-sigmoid-block.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/dark/backprop-sigmoid-block.svg" alt="Forward pass and backward pass of the Sigmoid block" />
-    </picture>
-</figure>
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="backprop-sigmoid-block.svg"
+  alt="Forward pass and backward pass of the Sigmoid block"
+/>
 
 The forward and backward passes for the Sigmoid building block are defined in BGD as well, if you are interested in the implementational details:
 [https://github.com/AntoinePassemiers/Beyond-Gradient-Descent/blob/master/src/bgd/layers/activation.py](https://github.com/AntoinePassemiers/Beyond-Gradient-Descent/blob/master/src/bgd/layers/activation.py)
@@ -320,13 +304,11 @@ $$
 
 Just for the sake of illustration, let's plug the formulas we found all together, so we have an idea of how the full gradients look like:
 
-<figure>
-    <picture>
-        <source srcset="/images/backpropagation-algorithm/dark/full.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/light/full.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/dark/full.svg" alt="MLP forward pass + backward pass" />
-    </picture>
-</figure>
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="full.svg"
+  alt="MLP forward pass + backward pass"
+/>
 
 We now have actual, ready-for-implementation formulas of the gradients:
 $$
@@ -359,13 +341,11 @@ Note: Of course, the algorithm presented here is tailored to our example. In pra
 
 You might wonder why it takes multiple steps to train the model, and why we couldn't just use a large value for $\lambda$, to speed things up and eventually solve the problem in a single step. The answer is simple: we can't. We shot ourselves in the foot by introducing activation functions and a loss function, which are non-linear by nature. Because of this non-linearity, the gradients $\nabla U$ and $\nabla V$ are not the same everywhere: their direction changes depending on the values of $U$ and $V$, and can even take opposite directions from one step to another.
 
-<figure>
-    <picture>
-        <source srcset="/images/backpropagation-algorithm/dark/convergence.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/light/convergence.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/dark/convergence.svg" alt="Convergence failure when learning rate is large" />
-    </picture>
-</figure>
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="convergence.svg"
+  alt="Convergence failure when learning rate is large"
+/>
 
 The figure hereabove illustrates what happens when choosing a value for $\lambda$ that is too large. Because the illustration is in 2D, it only works for models having a single parameter, and not $m \times h$ + $h \times c$ like we have. But the explanation remains valid in 3D, 4D, etc. When following the direction of the derivative (the left-to-right direction, which corresponds to the slope) and making a small step, the loss function decreases. On the other hand, when $\lambda$ is too large, not only the loss function is no longer guaranteed to decrease, but it can also increase! Even worse, the parameter may end up in a region of the loss function where the slope is even steeper, therefore producing derivatives that are bigger in magnitude, resulting in bigger steps... which can trigger a snowball effect, make the training unstable, and ultimately result in mathematical errors and a critical failure of the program. The goal is to minimize the loss function, not to accidentally maximize it while trying to minimize it.
 
