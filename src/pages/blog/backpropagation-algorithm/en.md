@@ -13,7 +13,7 @@ In the age of generative AI, it may be important to understand how modern large 
 
 ## Neural networks are not "networks of neurons"
 
-There is massive content about neural networks and backpropagation online, so it would be pretty useless repeating what has been written already. Anyway, when I was studying Machine Learning during my Master, I found the overwhelming majority (if not all) of formal courses and online blog posts incomplete or confusing on this topic. It took me the implementation of a deep learning library from scratch to understand how things actually work. So in this post, I will explain the algorithm the way I understood it.
+There is massive content about neural networks and backpropagation online, so it would be pretty useless repeating what has been written already. Anyway, when I was studying Machine Learning during my Master, I found the overwhelming majority (if not all) of formal courses and online blog posts incomplete or confusing on this topic. It took me the implementation of a deep learning library from scratch to understand how things actually work. So in this post, I will explain neural networks the way I understood them.
 
 > "What I cannot create, I do not understand."
 >
@@ -27,9 +27,9 @@ Neural networks are nothing more than compositions of mathematical functions. Le
 
 <figure>
     <picture>
-        <source srcset="/images/backpropagation-algorithm/forward-1-dark.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/forward-1-dark.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/full-dark.svg" alt="MLP forward pass" />
+        <source srcset="/images/backpropagation-algorithm/dark/forward-1.svg" media="(prefers-color-scheme: dark)">
+        <source srcset="/images/backpropagation-algorithm/light/forward-1.svg" media="(prefers-color-scheme: light)">
+        <img src="/images/backpropagation-algorithm/dark/formard-1.svg" alt="MLP forward pass" />
     </picture>
 </figure>
 
@@ -57,9 +57,9 @@ As can be seen immediately from the formula, the function is applied on each ele
 
 <figure>
     <picture>
-        <source srcset="/images/backpropagation-algorithm/sigmoid-dark.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/sigmoid-dark.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/sigmoid-dark.svg" alt="Sigmoid function" />
+        <source srcset="/images/backpropagation-algorithm/dark/sigmoid.svg" media="(prefers-color-scheme: dark)">
+        <source srcset="/images/backpropagation-algorithm/light/sigmoid.svg" media="(prefers-color-scheme: light)">
+        <img src="/images/backpropagation-algorithm/dark/sigmoid.svg" alt="Sigmoid function" />
     </picture>
 </figure>
 
@@ -75,9 +75,9 @@ To account for the *non-linear* relationship between variables, we need to apply
 
 <figure>
     <picture>
-        <source srcset="/images/backpropagation-algorithm/forward-no-loss-dark.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/forward-no-loss-dark.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/forward-no-loss-dark.svg" alt="MLP forward pass" />
+        <source srcset="/images/backpropagation-algorithm/dark/forward-no-loss.svg" media="(prefers-color-scheme: dark)">
+        <source srcset="/images/backpropagation-algorithm/light/forward-no-loss.svg" media="(prefers-color-scheme: light)">
+        <img src="/images/backpropagation-algorithm/dark/forward-no-loss.svg" alt="MLP forward pass" />
     </picture>
 </figure>
 
@@ -122,9 +122,9 @@ During the training phase, the overall architecture looks like this:
 
 <figure>
     <picture>
-        <source srcset="/images/backpropagation-algorithm/forward-dark.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/forward-dark.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/forward-dark.svg" alt="MLP forward pass" />
+        <source srcset="/images/backpropagation-algorithm/dark/forward.svg" media="(prefers-color-scheme: dark)">
+        <source srcset="/images/backpropagation-algorithm/light/forward.svg" media="(prefers-color-scheme: light)">
+        <img src="/images/backpropagation-algorithm/dark/forward.svg" alt="MLP forward pass" />
     </picture>
 </figure>
 
@@ -134,9 +134,9 @@ Before we move on to the most technical part of this post, let's make a small mo
 
 <figure>
     <picture>
-        <source srcset="/images/backpropagation-algorithm/forward-combined-dark.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/forward-combined-dark.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/forward-combined-dark.svg" alt="MLP forward pass" />
+        <source srcset="/images/backpropagation-algorithm/dark/forward-combined.svg" media="(prefers-color-scheme: dark)">
+        <source srcset="/images/backpropagation-algorithm/light/forward-combined.svg" media="(prefers-color-scheme: light)">
+        <img src="/images/backpropagation-algorithm/dark/forward-combined.svg" alt="MLP forward pass" />
     </picture>
 </figure>
 
@@ -169,9 +169,9 @@ For now, let's abstract away some mathematical details from previous figures and
 
 <figure>
     <picture>
-        <source srcset="/images/backpropagation-algorithm/backprop-simplified-dark.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/backprop-simplified-dark.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/backprop-simplified-dark.svg" alt="Simplified backpropagation" />
+        <source srcset="/images/backpropagation-algorithm/dark/backprop-simplified.svg" media="(prefers-color-scheme: dark)">
+        <source srcset="/images/backpropagation-algorithm/light/backprop-simplified.svg" media="(prefers-color-scheme: light)">
+        <img src="/images/backpropagation-algorithm/dark/backprop-simplified.svg" alt="Simplified backpropagation" />
     </picture>
 </figure>
 
@@ -203,7 +203,7 @@ where I defined the normalization factor $q := \frac{1}{nc}$ for notational conv
 
 The derivative turns out to be simply the difference between the annotation and the estimated probability, multiplied by $q$. If, instead, we had calculated the derivatives for the loss function and the Sigmoid function separately, and multiplied them afterward, this would have resulted in unnecessary intermediate steps which would slow down neural networks in practice. Here, the implementation is made much more elegant and efficient by making a single building block out of a composition of two mathematical functions that are known to synergize very well. Famous deep learning libraries, such as PyTorch, are well aware of such optimizations, and propose dedicated building blocks with efficient implementations.
 
-Now, let's rewrite the mathematical result we just found in matrix form (grouping all the individual partial derivatives in a single matrix $G^{(4)}$), which is easier to read:
+Now, let's rewrite the mathematical result we just found in matrix form (grouping all the individual partial derivatives in a single matrix $G^{(4)}$, which is easier to read:
 $$
 G^{(4)} = q \left( \sigma(Z^{(3)}) - Y \right).
 $$
@@ -215,9 +215,9 @@ To make it more obvious that the maths are the same regardless of the rest of th
 
 <figure>
     <picture>
-        <source srcset="/images/backpropagation-algorithm/backprop-final-block-dark.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/backprop-final-block-dark.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/backprop-final-block-dark.svg" alt="Forward pass and backward pass of the final block" />
+        <source srcset="/images/backpropagation-algorithm/dark/backprop-final-block.svg" media="(prefers-color-scheme: dark)">
+        <source srcset="/images/backpropagation-algorithm/light/backprop-final-block.svg" media="(prefers-color-scheme: light)">
+        <img src="/images/backpropagation-algorithm/dark/backprop-final-block.svg" alt="Forward pass and backward pass of the final block" />
     </picture>
 </figure>
 
@@ -263,9 +263,9 @@ We now have a building block defining the forward pass, as well as the backward 
 
 <figure>
     <picture>
-        <source srcset="/images/backpropagation-algorithm/backprop-fc-block-dark.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/backprop-fc-block-dark.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/backprop-fc-block-dark.svg" alt="Forward pass and backward pass of the Fully Connected block" />
+        <source srcset="/images/backpropagation-algorithm/dark/backprop-fc-block.svg" media="(prefers-color-scheme: dark)">
+        <source srcset="/images/backpropagation-algorithm/light/backprop-fc-block.svg" media="(prefers-color-scheme: light)">
+        <img src="/images/backpropagation-algorithm/dark/backprop-fc-block.svg" alt="Forward pass and backward pass of the Fully Connected block" />
     </picture>
 </figure>
 
@@ -286,7 +286,7 @@ $$
 & = \frac{\partial \ell}{\partial Z_{ij}^{(2)}} \sigma'(Z_{ij}^{(1)}), \\
 \end{aligned}
 $$
-where I defined $\sigma'(x) = \sigma(x) (1 - \sigma(x))$ for notational convenience. In matrix form, all this is the same as saying:
+where I defined $\sigma'(x) := \sigma(x) (1 - \sigma(x))$ for notational convenience. In matrix form, all this is the same as saying:
 $$
 G^{(2)} = G^{(3)} \odot \sigma'(Z^{(1)}).
 $$
@@ -295,9 +295,9 @@ The Sigmoid building block is illustrated below:
 
 <figure>
     <picture>
-        <source srcset="/images/backpropagation-algorithm/backprop-sigmoid-block-dark.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/backprop-sigmoid-block-dark.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/backprop-sigmoid-block-dark.svg" alt="Forward pass and backward pass of the Sigmoid block" />
+        <source srcset="/images/backpropagation-algorithm/dark/backprop-sigmoid-block.svg" media="(prefers-color-scheme: dark)">
+        <source srcset="/images/backpropagation-algorithm/light/backprop-sigmoid-block.svg" media="(prefers-color-scheme: light)">
+        <img src="/images/backpropagation-algorithm/dark/backprop-sigmoid-block.svg" alt="Forward pass and backward pass of the Sigmoid block" />
     </picture>
 </figure>
 
@@ -322,9 +322,9 @@ Just for the sake of illustration, let's plug the formulas we found all together
 
 <figure>
     <picture>
-        <source srcset="/images/backpropagation-algorithm/full-dark.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/full-dark.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/full-dark.svg" alt="MLP forward pass + backward pass" />
+        <source srcset="/images/backpropagation-algorithm/dark/full.svg" media="(prefers-color-scheme: dark)">
+        <source srcset="/images/backpropagation-algorithm/light/full.svg" media="(prefers-color-scheme: light)">
+        <img src="/images/backpropagation-algorithm/dark/full.svg" alt="MLP forward pass + backward pass" />
     </picture>
 </figure>
 
@@ -361,9 +361,9 @@ You might wonder why it takes multiple steps to train the model, and why we coul
 
 <figure>
     <picture>
-        <source srcset="/images/backpropagation-algorithm/convergence-dark.svg" media="(prefers-color-scheme: dark)">
-        <source srcset="/images/backpropagation-algorithm/convergence-dark.svg" media="(prefers-color-scheme: light)">
-        <img src="/images/backpropagation-algorithm/convergence-dark.svg" alt="Convergence failure when learning rate is large" />
+        <source srcset="/images/backpropagation-algorithm/dark/convergence.svg" media="(prefers-color-scheme: dark)">
+        <source srcset="/images/backpropagation-algorithm/light/convergence.svg" media="(prefers-color-scheme: light)">
+        <img src="/images/backpropagation-algorithm/dark/convergence.svg" alt="Convergence failure when learning rate is large" />
     </picture>
 </figure>
 
@@ -402,7 +402,7 @@ To summarize, we have seen that:
 There are many other concepts gravitating around this topic, which you can explore if you want to learn more, and become a Machine Learning practitioner yourself. Among these concepts, let me mention:
 - All the building blocks available in Deep Learning libraries, such as **1D convolution**, **2D convolution**, **3D convolution**, **transformers**, **parametric activation functions**, **recurrent layers**, **1D max pooling**, **1D average pooling**, etc.
 - **Regularization**, a mechanism used to alleviate overfitting issues.
-- The **vanishing gradient** and **exploding gradient** issues. When neural networks have a large number of layers, they are essentially a composition of many functions, and gradients are products of many matrices (or tensors). TODO
+- The **vanishing gradient** and **exploding gradient** issues. When neural networks have a large number of layers, they are essentially a composition of many functions, and gradients are products of many matrices (or tensors). In our example, $\nabla U = X^T q(\sigma(\sigma(XU)V) - Y) V^T \odot \sigma'(XU)$, which involves a lot of multiplications. When the number of layers is very large (e.g., larger than 20), the number of successive multiplications is so high that the gradients can become excessively small (vanishing gradient) or large (exploding gradient), leading to convergence issues. One solution is to have recourse to **residual connections**. Check out **residual neural networks** for more details.
 - The **initialization** of parameters. I said that the latter should be random at the start of the training (which is true), but I didn't mention that there are particular ways to do it, using specific probability distributions.
 - The other tasks that can be handled by neural networks. I presented how to solve a classification problem, but omitted the other main task: **regression**. Don't worry, the two tasks are very similar and the maths presented here can be trivially extended to the regression case.
 - Peculiar architectures which are definitely worth explaining: **autoencoders**, **generative adversarial networks**, etc.

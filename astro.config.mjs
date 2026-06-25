@@ -5,8 +5,9 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 
 export default defineConfig({
-  site: 'https://AntoinePassemiers.github.io',
-  base: '/Personal-Website',
+  site: 'https://AntoinePassemiers.github.io/Personal-Website',
+  //site: 'https://AntoinePassemiers.github.io',
+  //base: '/Personal-Website',
   integrations: [mdx()],
   markdown: {
     remarkPlugins: [remarkMath],
