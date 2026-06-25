@@ -10,9 +10,19 @@ const labels =
   lang === "en"
     ? ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"]
     : ["Débutant", "Facile", "Intermédiaire", "Avancé", "Expert"];
+
+const colors = [
+  "#4caf50", // Beginner (green)
+  "#8bc34a", // Easy
+  "#ffc107", // Intermediate (yellow)
+  "#ff9800", // Advanced (orange)
+  "#f44336", // Expert (red)
+];
+
+const color = colors[Math.max(0, Math.min(level - 1, colors.length - 1))];
 ---
 
-<div class="difficulty">
+<div class="difficulty" style={`--difficulty-color: ${color}`}>
   <span>Difficulty:</span>
 
   <div class="gauge">
@@ -42,6 +52,6 @@ const labels =
   }
 
   .gauge span.active {
-    color: #4caf50;
+    color: var(--difficulty-color);
   }
 </style>

@@ -13,6 +13,7 @@ difficulty: 3
 
 The following piece of code performs a simple leave-one-out (LOO) cross-validation of a support vector machine (SVM) on randomly generated data. Let us assume that, because of automatic hyperparameter optimization, LLM-generated code, lack of experience, or a careless mistake on the developer’s part, the regularization parameter is much lower than it should be (`C=1e-6`):
 
+
 ```python
 from sklearn.model_selection import LeaveOneOut
 from sklearn.svm import SVC
