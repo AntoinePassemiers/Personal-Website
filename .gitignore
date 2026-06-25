@@ -1,4 +1,4 @@
-package-lock.json
-
 .astro/
 node_modules/
+build/
+dist/
