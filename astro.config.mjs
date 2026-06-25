@@ -6,6 +6,7 @@ import rehypeKatex from "rehype-katex";
 
 export default defineConfig({
   site: 'https://AntoinePassemiers.github.io',
+  base: '/Personal-Website',
   integrations: [mdx()],
   markdown: {
     remarkPlugins: [remarkMath],
@@ -19,7 +20,3 @@ export default defineConfig({
     }
   },
 });
-
-// For project pages, set these in your repository if needed:
-// site: 'https://YOUR_USERNAME.github.io',
-// base: '/YOUR_REPOSITORY_NAME',
