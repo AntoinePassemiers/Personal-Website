@@ -1,10 +1,8 @@
 ---
-const { folder, filename, alt } = Astro.props;
-const BASE = import.meta.env.BASE_URL;
+import { joinPaths } from '../utils/url-utils.js';
 
-var base = folder;
-if ((BASE !== "/") && (BASE !== "undefined") && (BASE !== "")
-  base = new URL(BASE, folder).pathname
+const { folder, filename, alt } = Astro.props;
+const base = joinPaths(import.meta.env.BASE_URL, folder);
 ---
 
 <picture>

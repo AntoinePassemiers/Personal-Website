@@ -3,12 +3,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getTagClass } from '../../utils/tags.js';
 import { joinPaths } from '../../utils/url-utils.js';
 
-const modules = import.meta.glob('./**/*.md', { eager: true });
+const modules = import.meta.glob('./**/*.{md,mdx}', { eager: true });
 
 const posts = Object.entries(modules)
   .map(([path, module]) => {
     const frontmatter = module.frontmatter;
-    const slug = path.replace('./', '').replace('/index.md', '').replace('.md', '');
+    const slug = path
+      .replace('./', '')
+      .replace(/\/index\.(md|mdx)$/, '')
+      .replace(/\.(md|mdx)$/, '');
 
     return {
       title: frontmatter.title,

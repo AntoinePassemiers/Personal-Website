@@ -6,6 +6,7 @@ date: 2026-05-24
 author: Antoine Passemiers
 lang: en
 tag: Machine Learning
+difficulty: 3
 ---
 
 ## A simple example
