@@ -1,6 +1,10 @@
 ---
+import mdx from '@astrojs/mdx';
+import { joinPaths } from '../utils/url-utils.js';
+
 const base = import.meta.env.BASE_URL;
 const redirectScript = `${base}js/redirect-language.js`;
+const redirectURL = joinPaths(base, "en/");
 ---
 <!doctype html>
 <html lang="en" data-base={base} data-route="/">
@@ -8,7 +12,7 @@ const redirectScript = `${base}js/redirect-language.js`;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Redirecting · Astro Pages Blog</title>
-    <meta http-equiv="refresh" content={`0; url=${base}en/`} />
+    <meta http-equiv="refresh" content={`0; url=${redirectURL}`} />
   </head>
   <body>
     <p>Redirecting to your preferred language…</p>

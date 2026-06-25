@@ -1,4 +1,6 @@
 ---
+import { joinPaths } from '../utils/url-utils.js';
+
 const {
   lang = 'en',
   alternateHref = null
@@ -8,8 +10,7 @@ const base = import.meta.env.BASE_URL;
 const withBase = (path) => {
   if (base !== '/' && path.startsWith(base)) return path;
   //return `${base}${path.replace(/^\//, '')}`;
-  if (base) return path.replace(/^\//, '');
-  return new URL(base, path.replace(/^\//, '')).pathname;
+  return joinPaths(base, path.replace(/^\//, ''));
 };
 const currentPath = Astro.url.pathname;
 const normalizedLang = lang === 'fr' ? 'fr' : 'en';

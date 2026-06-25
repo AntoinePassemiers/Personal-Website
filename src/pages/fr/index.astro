@@ -1,7 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { joinPaths } from '../../utils/url-utils.js';
+
 const base = import.meta.env.BASE_URL;
-const withBase = (path) => `${base}${path.replace(/^\//, '')}`;
+const withBase = (path) => joinPaths(base, path.replace(/^\//, ''));
 ---
 <BaseLayout title="AP ²" lang="fr" alternateHref="/en/">
   <section class="container hero">

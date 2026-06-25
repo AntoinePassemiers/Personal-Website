@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getTagClass } from '../../utils/tags.js';
+import { joinPaths } from '../../utils/url-utils.js';
 
 const modules = import.meta.glob('./**/*.md', { eager: true });
 
@@ -15,7 +16,7 @@ const posts = Object.entries(modules)
       date: frontmatter.date,
       lang: frontmatter.lang ?? 'en',
       tag: frontmatter.tag ?? 'General',
-      href: `${import.meta.env.BASE_URL}blog/${slug}/`
+      href: joinPaths(import.meta.env.BASE_URL, `blog/${slug}/`)
     };
   })
   .filter((post) => post.lang === 'en')
