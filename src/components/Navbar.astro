@@ -102,23 +102,25 @@ const switchHref = alternateHref ?? fallbackAlternate;
         const isCurrent = currentPath === new URL(href, Astro.url).pathname || currentPath.endsWith(link.href);
         return <a href={href} aria-current={isCurrent ? 'page' : undefined}>{link.label}</a>;
       })}
-      <button
-        class="theme-toggle"
-        type="button"
-        aria-label="Toggle dark mode"
-        data-theme-toggle
-      >
-        🌙
-      </button>
-      <a
-        class="language-toggle"
-        href={withBase(switchHref)}
-        data-language-toggle
-        data-language={otherLang}
-        aria-label={`Switch language to ${otherLang.toUpperCase()}`}
-      >
-        {t.currently}
-      </a>
+      <div class="toggle-group">
+        <button
+          class="theme-toggle"
+          type="button"
+          aria-label="Toggle dark mode"
+          data-theme-toggle
+        >
+          🌙
+        </button>
+        <a
+          class="language-toggle"
+          href={withBase(switchHref)}
+          data-language-toggle
+          data-language={otherLang}
+          aria-label={`Switch language to ${otherLang.toUpperCase()}`}
+        >
+          {t.currently}
+        </a>
+      </div>
     </div>
   </nav>
 </header>

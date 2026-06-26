@@ -152,6 +152,7 @@ h1 {
 }
 
 h2 { font-size: clamp(2rem, 5vw, 3.5rem); }
+
 h3 { font-size: 1.45rem; }
 
 .lede {
@@ -368,38 +369,38 @@ section { margin: 56px 0; }
   .nav { align-items: flex-start; flex-direction: column; }
 }
 
-.theme-toggle {
+.toggle-group {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.theme-toggle, .language-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: 46px;
+  padding: 0 12px;
   border: 1px solid rgba(167, 139, 250, 0.38);
-  border-radius: 999px;
   background: rgba(167, 139, 250, 0.12);
   color: var(--brand-3);
   font-weight: 900;
   letter-spacing: 0.06em;
+  height: 40px;
+  line-height: 1;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.theme-toggle:hover {
-  border-color: rgba(167, 139, 250, 0.7);
-  background: rgba(167, 139, 250, 0.2);
+.theme-toggle {
+  border-right: none;
+  border-radius: 999px 0 0 999px !important;
 }
 
 .language-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 46px;
-  border: 1px solid rgba(167, 139, 250, 0.38);
-  border-radius: 999px;
-  background: rgba(167, 139, 250, 0.12);
-  color: var(--brand-3);
-  font-weight: 900;
-  letter-spacing: 0.06em;
+  /* border-left: none; */
+  border-radius: 0 999px 999px 0 !important;
 }
 
-.language-toggle:hover {
+.theme-toggle:hover, .language-toggle:hover {
   border-color: rgba(167, 139, 250, 0.7);
   background: rgba(167, 139, 250, 0.2);
 }
