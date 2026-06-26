@@ -16,7 +16,10 @@
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 html {
   background:
@@ -24,6 +27,7 @@ html {
     radial-gradient(circle at top right, rgba(34, 211, 238, 0.22), transparent 30rem),
     var(--bg);
   color: var(--text);
+  transition: background 0.8s ease;
 }
 
 html.light {
@@ -46,6 +50,7 @@ body {
   min-height: 100vh;
   margin: 0;
   line-height: 1.65;
+  transition: background-color 0.8s ease, color 0.8s ease, border-color 0.8s ease;
 }
 
 :not(pre) > code {
@@ -54,7 +59,10 @@ body {
 
 a { color: inherit; text-decoration: none; }
 
-img, canvas { max-width: 100%; }
+img, canvas {
+  max-width: 100%;
+  transition: opacity 0.8s ease;
+}
 
 .container {
   width: min(1120px, calc(100% - 32px));
@@ -68,6 +76,7 @@ img, canvas { max-width: 100%; }
   backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--line);
   background: color-mix(in srgb, var(--bg) 72%, transparent);
+  transition: background-color 0.8s ease, border-color 0.8s ease;
 }
 
 .nav {
@@ -156,6 +165,7 @@ h3 { font-size: 1.45rem; }
   border-radius: var(--radius);
   background: linear-gradient(180deg, var(--surface-strong), var(--surface));
   box-shadow: var(--shadow);
+  transition: background-color 0.8s ease, color 0.8s ease, border-color 0.8s ease;
 }
 
 .hero-card { padding: 28px; }
@@ -203,6 +213,7 @@ section { margin: 56px 0; }
 .prose {
   width: min(780px, calc(100% - 32px));
   margin: 54px auto 0;
+  transition: background-color 0.8s ease, color 0.8s ease, border-color 0.8s ease;
 }
 
 .prose h1 { font-size: clamp(2.6rem, 7vw, 5.2rem); }
