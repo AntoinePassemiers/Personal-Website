@@ -41,6 +41,56 @@ const fallbackAlternate = currentPath.replace(new RegExp(`/${normalizedLang}/?$`
 const switchHref = alternateHref ?? fallbackAlternate;
 ---
 <header class="site-header">
+
+  <script is:inline>
+    const root = document.documentElement;
+    const STORAGE_KEY = 'theme';
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    function updateThemeImages() {
+      const isLight = root.classList.contains('light');
+
+      document.querySelectorAll('[data-theme-image]').forEach((img) => {
+        img.src = isLight ? img.dataset.light : img.dataset.dark;
+      });
+    }
+
+    function applyTheme(theme) {
+      const isLight = theme === 'light';
+
+      root.classList.toggle('light', isLight);
+      localStorage.setItem(STORAGE_KEY, theme);
+
+      updateThemeImages();
+    }
+
+    function getInitialTheme() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return saved;
+      return prefersDark ? 'dark' : 'light';
+    }
+
+    const initialTheme = getInitialTheme();
+
+    applyTheme(initialTheme);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const btn = document.querySelector('[data-theme-toggle]');
+      if (!btn) return;
+
+      btn.textContent = initialTheme === 'light' ? '☀️' : '🌙';
+
+      btn.addEventListener('click', () => {
+        const isLight = root.classList.contains('light');
+        const nextTheme = isLight ? 'dark' : 'light';
+
+        applyTheme(nextTheme);
+        btn.textContent = isLight ? '🌙' : '☀️';
+      });
+    });
+  </script>
+
   <nav class="container nav" aria-label="Main navigation">
     <a class="brand" href={withBase(`/${normalizedLang}/`)}>
       <span class="brand-mark" aria-hidden="true">✦</span>
@@ -52,6 +102,14 @@ const switchHref = alternateHref ?? fallbackAlternate;
         const isCurrent = currentPath === new URL(href, Astro.url).pathname || currentPath.endsWith(link.href);
         return <a href={href} aria-current={isCurrent ? 'page' : undefined}>{link.label}</a>;
       })}
+      <button
+        class="theme-toggle"
+        type="button"
+        aria-label="Toggle dark mode"
+        data-theme-toggle
+      >
+        🌙
+      </button>
       <a
         class="language-toggle"
         href={withBase(switchHref)}

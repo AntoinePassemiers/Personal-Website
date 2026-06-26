@@ -6,6 +6,7 @@ interface Props {
 
 const { level, lang = "en" } = Astro.props;
 
+const difficultyLabel = lang === "en" ? "Difficulty" : "Difficulté";
 const labels =
   lang === "en"
     ? ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"]
@@ -23,7 +24,7 @@ const color = colors[Math.max(0, Math.min(level - 1, colors.length - 1))];
 ---
 
 <div class="difficulty" style={`--difficulty-color: ${color}`}>
-  <span>Difficulty:</span>
+  <span>{difficultyLabel}:</span>
 
   <div class="gauge">
     {[1, 2, 3, 4, 5].map((i) => (

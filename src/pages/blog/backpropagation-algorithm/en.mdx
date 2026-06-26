@@ -15,7 +15,7 @@ In the age of generative AI, it may be important to understand how modern large 
 
 ## Neural networks are not "networks of neurons"
 
-There is massive content about neural networks and backpropagation online, so it would be pretty useless repeating what has been written already. Anyway, when I was studying Machine Learning during my Master, I found the overwhelming majority (if not all) of formal courses and online blog posts incomplete or confusing on this topic. It took me the implementation of a deep learning library from scratch to understand how things actually work. So in this post, I will explain neural networks the way I understood them.
+There is massive content about neural networks and backpropagation online, so it would be pretty useless repeating what has been written already. Anyway, when I was studying Machine Learning during my Master, I found the overwhelming majority (if not all) of formal courses and online blog posts incomplete or confusing on this topic. It took me the implementation of a Deep Learning library from scratch to understand how things actually work. So in this post, I will explain neural networks the way I understood them.
 
 > "What I cannot create, I do not understand."
 >
@@ -63,7 +63,7 @@ As can be seen immediately from the formula, the function is applied on each ele
 
 The Sigmoid function is indeed not a straight line, but a curvy, S-like functions. It's no coincidence that sigmoid means "S-shaped" in Greek.
 
-## Why deep learning has to be deep
+## Why Deep Learning has to be deep
 
 The model presented in the previous section is naive in multiple ways. First, it lacks what we call a "bias term" or "intercept". In practice, the full formula is $\sigma(XU + b)$, not just $\sigma(XU)$. That's not a problem, as my example can be easily generalized to more complex models. Spoiler: handling additions is simpler than handling multiplications. If you understand the whole content of this post, implementing the addition should be a piece of cake. By the way, if you wonder what $b$ is used for, it helps the model ensuring that on average, the values of $XU + b$ are located not too far from zero, therefore making the values of $\sigma(XU + b)$ not too far from $\frac{1}{2}$. This is of utmost importance, as it enforces the estimations to default to roughly neutral values when the model is unconfident or lacks discriminative information. Of course, this explanation is only valid for my specific example, but the role of $b$ is much more context-dependent than it might seem.
 
@@ -81,7 +81,7 @@ A variant of this two-layer architecture has been proven to be suitable for appr
 
 Let's note an important transformation of our model. Previously, we had a matrix parameter $U$ of shape $m \times c$, where $c$ is the number of classes (e.g., the number of animal species to distinguish). Now, we have two matrices $U$ and $V$, which have shapes $m \times h$ and $h \times c$, where $h$ is unknown. In fact, $h$ is unknown because it is up to us to choose it. Because it is arbitrary, it is called a *hyper-parameter*. Let's note that $h$ is the number of columns in $U$ but also the number of rows in $V$ to ensure that the dimensions match. Otherwise, matrix multiplication would be invalid and undefined.
 
-While the theory suggest that this two-layer neural network is extremely powerful, there is a catch: nobody is using such architectures in 2026. You probably came across the term "deep learning" already. "Deep" refers to the number of layers that a neural network possesses. Most modern neural networks have very large numbers of layers. GPT-3 175B, a relatively old large language model, has no fewer than 96 layers [^4]. So why do practitioners have recourse to more layers than just two?
+While the theory suggest that this two-layer neural network is extremely powerful, there is a catch: nobody is using such architectures in 2026. You probably came across the term "Deep Learning" already. "Deep" refers to the number of layers that a neural network possesses. Most modern neural networks have very large numbers of layers. GPT-3 175B, a relatively old large language model, has no fewer than 96 layers [^4]. So why do practitioners have recourse to more layers than just two?
 
 For the Universal Approximation Theorem to hold in practice, the size of the matrices should scale to the difficulty of the problem. The more intricate the data, the higher $h$ should be. However, increasing the size of matrices $U$ and $V$ brings a new problem: **overfitting**. To put it simply, overfitting occurs when a model learns by heart the data being shown during training. When parameter matrices (here $U$ and $V$) become too large, the model starts using them as plain memory, instead of drawing smart, short and general conclusions from the data. Humans act in the exact same way: the less material we must study and/or the more time we have to study it, the easier it is for us to study it by heart. Here, the smaller the data matrix ($X$) and/or the more capacity the model has ($U$ and $V$, through $h$), the more likely it is to overfit. In both cases, the consequence is the same: performance becomes miserable when confronted with new, unseen questions/data. And in both cases, the correct way to fix the problem is the same: building abstraction.
 
@@ -161,8 +161,8 @@ For now, let's abstract away some mathematical details from previous figures and
 
 <ResponsiveImage
   folder="/images/backpropagation-algorithm"
-  filename="forward-simplified.svg"
-  alt="Simplified forward pass"
+  filename="backprop-simplified.svg"
+  alt="Simplified forward and backward passes"
 />
 
 This is precisely why the gradient estimation algorithm is called the backpropagation algorithm: because it propagates the information obtained at the end (the right) of the network back to the start (the left), computing the gradient of $U$ and $V$ along the way. This approach is valid because the chain rule can be applied on each function successively.
@@ -191,7 +191,7 @@ $$
 $$
 where I defined the normalization factor $q := \frac{1}{nc}$ for notational convenience.
 
-The derivative turns out to be simply the difference between the annotation and the estimated probability, multiplied by $q$. If, instead, we had calculated the derivatives for the loss function and the Sigmoid function separately, and multiplied them afterward, this would have resulted in unnecessary intermediate steps which would slow down neural networks in practice. Here, the implementation is made much more elegant and efficient by making a single building block out of a composition of two mathematical functions that are known to synergize very well. Famous deep learning libraries, such as PyTorch, are well aware of such optimizations, and propose dedicated building blocks with efficient implementations.
+The derivative turns out to be simply the difference between the annotation and the estimated probability, multiplied by $q$. If, instead, we had calculated the derivatives for the loss function and the Sigmoid function separately, and multiplied them afterward, this would have resulted in unnecessary intermediate steps which would slow down neural networks in practice. Here, the implementation is made much more elegant and efficient by making a single building block out of a composition of two mathematical functions that are known to synergize very well. Famous Deep Learning libraries, such as PyTorch, are well aware of such optimizations, and propose dedicated building blocks with efficient implementations.
 
 Now, let's rewrite the mathematical result we just found in matrix form (grouping all the individual partial derivatives in a single matrix $G^{(4)}$, which is easier to read:
 $$
@@ -201,7 +201,7 @@ $$
 We end up with the following building block, which defines:
 - The **forward pass**: how to compute the loss function from an input, showed by the arrows going from left to right in the figure below.
 - The **backward pass**: how to compute the gradient of that input, showed by the arrow going from right to left.
-To make it more obvious that the maths are the same regardless of the rest of the architecture of the model, I dropped the $^(3)$ from the $Z^(3)$ in the figure:
+To make it more obvious that the maths are the same regardless of the rest of the architecture of the model, I dropped the $^{(3)}$ from $Z^{(3)}$ in the figure:
 
 <ResponsiveImage
   folder="/images/backpropagation-algorithm"
@@ -337,7 +337,7 @@ I hope I haven't lost you along the way, because time has finally come to provid
 
 $\lambda$ is called the learning rate, and determines how big of a step we take everytime the parameters are updated. To ensure the algorithm converges, $\lambda$ needs to be sufficiently small.
 
-Note: Of course, the algorithm presented here is tailored to our example. In practice, complex models involve many more parameter matrices than just $U$ and $V$. In fact, they can involve more than matrices, typically **tensors**. The tensor is a generalization of matrices, where the dimensionality is not restricted to two (rows and columns). TensorFlow, an another famous deep learning library, takes its name from tensors.
+Note: Of course, the algorithm presented here is tailored to our example. In practice, complex models involve many more parameter matrices than just $U$ and $V$. In fact, they can involve more than matrices, typically **tensors**. The tensor is a generalization of matrices, where the dimensionality is not restricted to two (rows and columns). TensorFlow, an another famous Deep Learning library, takes its name from tensors.
 
 You might wonder why it takes multiple steps to train the model, and why we couldn't just use a large value for $\lambda$, to speed things up and eventually solve the problem in a single step. The answer is simple: we can't. We shot ourselves in the foot by introducing activation functions and a loss function, which are non-linear by nature. Because of this non-linearity, the gradients $\nabla U$ and $\nabla V$ are not the same everywhere: their direction changes depending on the values of $U$ and $V$, and can even take opposite directions from one step to another.
 
@@ -367,7 +367,7 @@ A major drawback of the gradient descent algorithm is that it is extremely costl
 
 ### The Adam optimizer
 
-To train more complex models, stochastic gradient descent is not enough, as the training becomes more hazardous. To stabilize the parameter updates across steps, it was suggested to share information between steps: each parameter update now depends on how we updated the parameter during the previous steps. Many approaches based on this idea were suggested, such as Momentum, Adadelta, Adagrad, ..., and the widely-used Adam optimizer [^9]. I will not go over the details, as understanding Adam is not a prerequisite to understanding deep learning. In any case, the mathematical details are much simpler than what I presented in this post.
+To train more complex models, stochastic gradient descent is not enough, as the training becomes more hazardous. To stabilize the parameter updates across steps, it was suggested to share information between steps: each parameter update now depends on how we updated the parameter during the previous steps. Many approaches based on this idea were suggested, such as Momentum, Adadelta, Adagrad, ..., and the widely-used Adam optimizer [^9]. I will not go over the details, as understanding Adam is not a prerequisite to understanding Deep Learning. In any case, the mathematical details are much simpler than what I presented in this post.
 
 ## Summary
 
