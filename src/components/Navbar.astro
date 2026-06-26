@@ -43,50 +43,41 @@ const switchHref = alternateHref ?? fallbackAlternate;
 <header class="site-header">
 
   <script is:inline>
-    const root = document.documentElement;
-    const STORAGE_KEY = 'theme';
-
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    function updateThemeImages() {
-      const isLight = root.classList.contains('light');
-
-      document.querySelectorAll('[data-theme-image]').forEach((img) => {
-        img.src = isLight ? img.dataset.light : img.dataset.dark;
-      });
-    }
-
-    function applyTheme(theme) {
-      const isLight = theme === 'light';
-
-      root.classList.toggle('light', isLight);
-      localStorage.setItem(STORAGE_KEY, theme);
-
-      updateThemeImages();
-    }
-
-    function getInitialTheme() {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return saved;
-      return prefersDark ? 'dark' : 'light';
-    }
-
-    const initialTheme = getInitialTheme();
-
-    applyTheme(initialTheme);
-
     window.addEventListener('DOMContentLoaded', () => {
+      const root = document.documentElement;
       const btn = document.querySelector('[data-theme-toggle]');
+
       if (!btn) return;
 
-      btn.textContent = initialTheme === 'light' ? '☀️' : '🌙';
+      function updateThemeImages() {
+        const isLight = root.classList.contains('light');
+
+        document.querySelectorAll('[data-theme-image]').forEach((img) => {
+          img.src = isLight ? img.dataset.light : img.dataset.dark;
+        });
+      }
+
+      function updateButton() {
+        btn.textContent = root.classList.contains('light')
+          ? '☀️'
+          : '🌙';
+      }
+
+      updateButton();
+      updateThemeImages();
 
       btn.addEventListener('click', () => {
-        const isLight = root.classList.contains('light');
-        const nextTheme = isLight ? 'dark' : 'light';
+        const isLight = !root.classList.contains('light');
 
-        applyTheme(nextTheme);
-        btn.textContent = isLight ? '🌙' : '☀️';
+        root.classList.toggle('light', isLight);
+
+        localStorage.setItem(
+          'theme',
+          isLight ? 'light' : 'dark'
+        );
+
+        updateButton();
+        updateThemeImages();
       });
     });
   </script>
