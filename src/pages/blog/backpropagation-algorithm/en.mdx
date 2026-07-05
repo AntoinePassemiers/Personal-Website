@@ -315,8 +315,8 @@ Just for the sake of illustration, let's plug the formulas we found all together
 We now have actual, ready-for-implementation formulas of the gradients:
 $$
 \begin{aligned}
-\nabla U & = X^T \left( q(\sigma(\sigma(XU)V) - Y) V^T \odot \sigma'(XU) \right \\
-\nabla V & = \sigma(XU)^T q(\sigma(\sigma(XU)V) - Y) \\
+\nabla U & = X^T \bigl( q(\sigma(\sigma(XU)V) - Y) V^T \odot \sigma'(XU) \bigr) \\
+\nabla V & = \sigma(XU)^T q(\sigma(\sigma(XU)V) - Y)
 \end{aligned}
 $$
 
