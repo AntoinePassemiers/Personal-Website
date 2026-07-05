@@ -1,0 +1,402 @@
+---
+layout: ../../../layouts/PostLayout.astro
+title: Réseaux neuronaux : une introduction intuitive et formelle
+description: Une explication intuitive mais aussi formelle des réseaux neuronaux et de l’algorithme de rétropropagation
+date: 2026-06-23
+author: Antoine Passemiers
+lang: fr
+tag: Machine Learning
+difficulty: 2
+---
+
+import ResponsiveImage from '../../../components/ResponsiveImage.astro';
+
+À l’ère de l’IA générative, il peut être important de comprendre comment les grands modèles de langage modernes, et plus largement les réseaux neuronaux, sont réellement entraînés. Les réseaux neuronaux sont devenus incroyablement complexes au fil du temps, mais une grande partie de cette complexité vient du processus de collecte des données, de la conception architecturale et de l’implémentation. En réalité, les mathématiques nécessaires pour comprendre l’entraînement des réseaux neuronaux sont assez simples : l’idée centrale derrière l’entraînement des réseaux neuronaux repose surtout sur les dérivées et la règle de dérivation en chaîne (des notions dont vous vous souvenez probablement du lycée). La notation peut sembler intimidante, surtout parce que nous utilisons des matrices, mais le mécanisme sous-jacent est plus simple qu’il n’y paraît au premier abord.
+
+## Les réseaux neuronaux ne sont pas des « réseaux de neurones »
+
+Il existe une quantité énorme de contenu en ligne à propos des réseaux neuronaux et de la rétropropagation, donc il serait assez inutile de répéter ce qui a déjà été écrit. Quoi qu’il en soit, lorsque j’étudiais le machine learning pendant mon master, j’ai trouvé l’écrasante majorité (si ce n’est la totalité) des cours formels et des articles de blog en ligne incomplets ou confus sur ce sujet. Il m’a fallu implémenter une bibliothèque de deep learning à partir de zéro pour comprendre comment les choses fonctionnent réellement. Dans cet article, je vais donc expliquer les réseaux neuronaux de la manière dont je les ai compris.
+
+> « Ce que je ne peux pas créer, je ne le comprends pas. »
+>
+> — Richard Feynman
+
+Je vais dissiper plusieurs idées reçues dès le départ. Ne pensez pas aux réseaux neuronaux comme à des « réseaux de neurones ». Oubliez les dessins que tout le monde partage, où l’on voit des neurones connectés par des arêtes dans tous les sens. Même si l’analogie avec les cerveaux peut donner une compréhension superficielle de la manière dont les réseaux neuronaux **font des prédictions**, elle constitue une impasse si votre objectif est de comprendre pleinement comment ils sont **entraînés**. Cette analogie neuronale est d’autant plus fausse aujourd’hui que les réseaux neuronaux impliquent bien plus que des couches entièrement connectées, comme des convolutions ou des transformers, qui ne ressemblent même pas vaguement à des neurones biologiques.
+
+## Un modèle à une seule couche
+
+Les réseaux neuronaux ne sont rien d’autre que des compositions de fonctions mathématiques. Commençons par l’exemple le plus simple possible :
+
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="forward-1.svg"
+  alt="Passe avant"
+/>
+
+Ici, $X$ est une matrice de données. Si vous ne vous souvenez pas de ce qu’est une matrice, vous aurez clairement besoin d’un petit rappel au préalable : https://en.wikipedia.org/wiki/Matrix_(mathematics).
+Si vous n’avez pas le temps, voici un cours accéléré très rapide sur les matrices :
+- Les matrices ne sont rien d’autre que des grilles de nombres (par exemple des feuilles Excel). Pour les besoins de l’exemple, imaginons que chaque ligne corresponde au résumé d’une image, et que chaque colonne corresponde à une caractéristique descriptive de cette image. S’il y a $n$ images et $m$ indices visuels, la matrice $X$ est de forme $n \times m$.
+- L’élément situé à la ligne $i$ et à la colonne $j$ de la matrice $X$ est noté $X_{ij}$. La notation suivante peut également être utilisée : $\left( X \right)_{ij}$.
+- $X^T$ est la transposée de $X$, c’est-à-dire la matrice obtenue en échangeant les lignes et les colonnes de $X$. En transposant une matrice deux fois, on obtient à nouveau la même matrice : $X = (X^T)^T$. Pour cette raison précise, on peut également dire que $X_{ij} = \left(X^T\right)_{ji}$.
+- $A \odot B$ s’appelle le « produit de Hadamard », et il est plus simple que la multiplication matricielle « classique ». Il crée une matrice (appelons-la $C$) où chaque élément est le produit des éléments correspondants dans les matrices $A$ et $B$. Cela signifie : $C_{ij} = A_{ij}B_{ij}$.
+- Lorsque deux matrices $A$ et $B$ sont écrites l’une à côté de l’autre, comme $AB$, alors elles sont multipliées de la « manière classique » : $\left( AB \right)_{ij} = \sum_k A_{ik} B_{kj}.$
+
+Revenons au modèle représenté dans la figure ci-dessus. $XU$ est le produit des matrices $X$ et $U$, c’est-à-dire une matrice dont les éléments sont définis comme suit :
+$$
+\left( XU \right)_{ij} = \sum_k X_{ik} U_{kj}.
+$$
+Alors, qu’est-ce que $U$ exactement ? Eh bien, c’est une matrice de paramètres. C’est précisément la matrice qui sera **apprise** pour résoudre notre problème. Comme $U$ est apprenable, je l’ai enfermée dans le premier bloc de la figure. Dans le cas d’un problème de classification binaire (par exemple déterminer s’il y a ou non un chat sur l’image), la sortie du réseau neuronal doit être une seule valeur ; $U$ n’a donc qu’une seule colonne, ce qui en fait essentiellement un vecteur. Notons qu’en statistiques, un tel modèle est ce que l’on appelle une *régression logistique* (« logit » pour les initiés), mais sans terme d’interception.
+
+La prochaine question que vous pourriez vous poser est : pourquoi multiplier $X$ et $U$ ? Parce que c’est une manière d’attribuer différents poids, ou degrés d’importance, à chaque variable/descripteur/caractéristique contenu dans $X$, puis de les combiner. Par exemple, une variable liée à la présence de fourrure devrait avoir une contribution positive et élevée pour détecter des chats dans une image, mais une contribution négative et élevée pour détecter des dauphins. En revanche, une variable liée à la luminosité globale de l’image devrait avoir une contribution faible ou proche de zéro, car elle ne devrait (en principe) pas permettre de distinguer de manière fiable les chats des autres animaux, par exemple.
+
+Enfin, $\sigma$ est une fonction d’activation définie comme suit :
+$$
+\left( \sigma(X) \right)_{ij} = \frac{1}{1 + e^{-X_{ij}}}.
+$$
+Comme on le voit immédiatement dans la formule, la fonction est appliquée à chaque élément de la matrice *indépendamment*. Ici, le but n’est pas de coupler les variables, mais de les *transformer*. Plus précisément, cette fonction force la sortie à rester bornée entre 0 et 1. C’est très pratique si le modèle est conçu pour estimer des probabilités (par exemple, la probabilité qu’un animal photographié soit un chat, un chien, un rat-taupe nu ou un tardigrade). Comme nous le verrons dans la prochaine section, la fonction d’activation peut jouer un second rôle, beaucoup plus important, dans le modèle. Celui-ci est lié au fait que la fonction est *non linéaire*. Non linéaire signifie qu’elle ne peut pas être représentée par une droite. Voici la fonction sigmoïde :
+
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="sigmoid.svg"
+  alt="Fonction sigmoïde"
+/>
+
+La fonction sigmoïde n’est effectivement pas une droite, mais une fonction courbe, en forme de S. Ce n’est pas un hasard si « sigmoïde » signifie « en forme de S » en grec.
+
+## Pourquoi le Deep Learning doit être profond
+
+Le modèle présenté dans la section précédente est naïf à plusieurs égards. Premièrement, il lui manque ce que l’on appelle un « terme de biais » ou une « interception ». En pratique, la formule complète est $\sigma(XU + b)$, et non simplement $\sigma(XU)$. Ce n’est pas un problème, car mon exemple peut être facilement généralisé à des modèles plus complexes. Spoiler : gérer les additions est plus simple que gérer les multiplications. Si vous comprenez tout le contenu de cet article, implémenter l’addition devrait être un jeu d’enfant. Au passage, si vous vous demandez à quoi sert $b$, il permet au modèle de déplacer sa frontière de décision. Sans lui, le modèle est obligé de faire des prédictions comme si le « point neutre » était toujours centré à l’origine, ce qui est souvent trop restrictif.
+
+La deuxième limite est qu’il ne considère que la **relation linéaire entre les variables**. Par là, je veux dire que chaque caractéristique descriptive contribue indépendamment aux probabilités estimées. Revenons à l’exemple de la classification d’animaux. Les paons bleus peuvent être identifiés par la présence d’un plumage brun OU par la présence d’une longue queue ornementale. Par OU, je veux dire XOR (OU exclusif) : les deux faits ne peuvent pas être vrais en même temps. C’est ce qu’on appelle le dimorphisme sexuel : les mâles du paon bleu (les paons) ont une longue queue, tandis que les femelles (les paonnes) ont un plumage majoritairement brun [^1]. Aucun des deux ne possède les deux caractéristiques en même temps. Un modèle linéaire ne conviendrait pas ici, car il pourrait classer un oiseau quelconque comme paon bleu avec un excès de confiance en raison de la présence simultanée d’un plumage brun et d’une longue queue. Ce problème existe sous diverses formes, et on l’appelle le « problème XOR » [^2].
+
+Pour tenir compte de la relation *non linéaire* entre les variables, nous devons appliquer des fonctions d’activation (qui sont volontairement conçues pour être non linéaires) **avant** de combiner les variables avec une opération linéaire. Ajoutons une opération entièrement connectée après notre fonction d’activation. Maintenant que le modèle ne se termine plus par une fonction d’activation, les sorties ne sont plus des probabilités bornées entre 0 et 1. La solution naturelle consiste à ajouter également une autre fonction d’activation, ce qui donne cette nouvelle architecture :
+
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="forward-no-loss.svg"
+  alt="Passe avant d’un MLP"
+/>
+
+Il a été démontré qu’une variante de cette architecture à deux couches est capable d’approximer presque n’importe quelle fonction, à condition que la taille des matrices soit suffisamment grande. *Pour être plus précis, elle peut approximer des fonctions continues à support compact sous certaines conditions, mais cela n’a pas beaucoup d’importance ici.* Ce résultat important, appelé théorème d’approximation universelle [^3], constitue un fondement théorique de l’utilisation des réseaux neuronaux dans des problèmes divers et sans lien apparent : les réseaux neuronaux sont suffisamment flexibles pour approximer une très large gamme de motifs, à condition que l’architecture soit assez grande et que l’entraînement fonctionne bien.
+
+Notons une transformation importante de notre modèle. Auparavant, nous avions une matrice de paramètres $U$ de forme $m \times c$, où $c$ est le nombre de classes (par exemple, le nombre d’espèces animales à distinguer). Maintenant, nous avons deux matrices $U$ et $V$, de formes respectives $m \times h$ et $h \times c$, où $h$ est inconnu. Intuitivement, $h$ contrôle le nombre de caractéristiques intermédiaires que le modèle est autorisé à inventer avant de produire la prédiction finale. En réalité, $h$ est inconnu parce que c’est à nous de le choisir. Comme il est arbitraire, on l’appelle un *hyperparamètre*. Notons que $h$ est le nombre de colonnes dans $U$, mais aussi le nombre de lignes dans $V$, afin de garantir que les dimensions correspondent. Sinon, la multiplication matricielle serait invalide et indéfinie.
+
+Même si la théorie suggère que ce réseau neuronal à deux couches est extrêmement puissant, il y a un hic : de telles architectures peu profondes sont rarement suffisantes pour les tâches modernes à grande échelle. Vous avez probablement déjà croisé le terme « deep learning ». « Deep » fait référence au nombre de couches que possède un réseau neuronal. La plupart des réseaux neuronaux modernes ont un très grand nombre de couches. GPT-3 175B, un grand modèle de langage relativement ancien, ne possède pas moins de 96 couches [^4]. Alors pourquoi les praticiens ont-ils recours à davantage de couches que seulement deux ?
+
+Pour que le théorème d’approximation universelle tienne en pratique, la taille des matrices doit croître avec la difficulté du problème. Plus les données sont complexes, plus $h$ doit être élevé. Cependant, augmenter la taille des matrices $U$ et $V$ introduit un nouveau problème : le **surapprentissage**. Pour le dire simplement, le surapprentissage se produit lorsqu’un modèle apprend par cœur les données qui lui sont montrées pendant l’entraînement. Lorsque les matrices de paramètres (ici $U$ et $V$) deviennent trop grandes, le modèle commence à les utiliser comme une simple mémoire, au lieu de tirer des conclusions intelligentes, concises et générales à partir des données. Les humains agissent exactement de la même manière : moins nous avons de matière à étudier et/ou plus nous avons de temps pour l’étudier, plus il nous est facile de l’apprendre par cœur. Ici, plus la matrice de données ($X$) est petite et/ou plus le modèle a de capacité ($U$ et $V$, via $h$), plus il est susceptible de surapprendre. Dans les deux cas, la conséquence est la même : les performances deviennent misérables face à de nouvelles questions/données jamais vues. Et dans les deux cas, la bonne manière de régler le problème est la même : construire de l’abstraction.
+
+Une bonne manière de construire de l’abstraction consiste à forcer le modèle à réutiliser des paramètres et à apprendre des représentations intermédiaires au lieu de mémoriser chaque exemple d’entraînement. Autrement dit : **faire plus avec moins**. C’est pourquoi la recherche en machine learning ne s’est pas simplement arrêtée au théorème d’approximation universelle. Les chercheurs cherchent constamment à construire des modèles plus puissants à l’aide de fonctions mathématiques « sophistiquées ». Voici deux exemples :
+- Les réseaux neuronaux convolutionnels, qui atteignent de grands « champs récepteurs » en empilant des filtres convolutionnels [^5]. Autrement dit, ces modèles sont capables d’observer et d’extraire de l’information à partir de tous les pixels d’une image en utilisant relativement peu de paramètres.
+- Les transformers, qui sont capables de prêter « attention » à tous les éléments d’une séquence (par exemple les mots d’un texte) sans perdre le contexte [^6].
+Les convolutions réutilisent les mêmes filtres à travers une image, de sorte que le nombre de paramètres appris ne croît pas avec le nombre de pixels. Les transformers réutilisent également les mêmes projections apprises à travers les positions de la séquence, même si leur coût en calcul et en mémoire augmente tout de même avec la longueur de la séquence.
+
+Quoi qu’il en soit, pour rendre les détails mathématiques moins fastidieux, concentrons-nous sur l’architecture illustrée dans la figure précédente.
+
+## Comment dire à un modèle à quel point il se trompe
+
+Jusqu’ici, nous avons les ingrédients suivants :
+- Des données : $X$
+- Un modèle : $\sigma(\sigma(XU)V)$
+
+Maintenant, j’aimerais prendre quelques minutes pour aborder une confusion fréquente, que l’on retrouve partout dans les médias, mais aussi dans la vaste communauté scientifique. Il existe une distinction claire et bien définie entre modèle et algorithme, et ces deux termes ne devraient pas être utilisés de manière interchangeable. **Le modèle** encapsule la manière dont nous percevons le monde, ainsi que la manière dont des conclusions ou des prédictions doivent être produites à partir des données (si elles sont disponibles). Cette notion est en quelque sorte matérialiste : dans notre exemple, elle englobe les matrices de paramètres $U$ et $V$, la description de la manière d’identifier des animaux dans des images, les fonctions mathématiques à utiliser à cette fin, et éventuellement une illustration graphique du modèle avec des boîtes et des flèches. De plus, le modèle occupe aussi de l’espace physique, puisqu’il est nécessairement stocké dans la RAM de l’ordinateur chaque fois qu’il est utilisé. Lorsque vous téléchargez un grand modèle de langage via HuggingFace [^7], vous téléchargez un modèle, pas un algorithme. Un **algorithme** dicte comment utiliser le modèle. En réalité, chaque réseau neuronal possède au moins deux algorithmes qui lui sont liés :
+- La passe avant : calculer des sorties à partir des données (par exemple des probabilités). Pour vous donner une idée, cet algorithme est utilisé chaque fois que vous posez une question à ChatGPT. Dans notre exemple, la passe avant consiste simplement à calculer $\sigma(\sigma(XU)V)$, étant donnée une matrice de données $X$.
+- L’algorithme d’entraînement (par exemple la « descente de gradient », qui s’appuie sur l’algorithme de rétropropagation). Cette étape est coûteuse et nécessite de collecter des données au préalable.
+
+Ce qui m’amène à la phase d’entraînement. Comment un réseau neuronal peut-il savoir quel animal apparaît sur une image ? Eh bien, il ne le peut pas tant que vous ne l’avez pas entraîné. Cela signifie qu’avant l’entraînement, le modèle donnera simplement des réponses aléatoires. Dans notre exemple, c’est parce que $U$ et $V$, qui doivent nécessairement exister avant la phase d’entraînement, sont initialisés avec des valeurs aléatoires. C’est par essai-erreur que le modèle apprendra à faire mieux que le hasard. Mais comment dire au modèle à quel point il se trompe ? Nous avons besoin de deux choses :
+- Des annotations indiquant, pour chaque image et chaque espèce animale, si cette dernière est présente dans l’image. Disons que nous avons de telles annotations sous la forme d’une matrice $Y$, où $Y_{ij}$ vaut 1 si l’espèce animale $j$ est présente dans l’image $i$, et 0 sinon.
+- Une fonction mathématique, appelée *fonction de perte*, qui quantifie à quel point le modèle se trompe en moyenne.
+
+Le meilleur choix pour la fonction de perte est la fonction d’« entropie croisée binaire », définie comme suit :
+$$
+\ell = -\frac{1}{nc} \sum_i \sum_j Y_{ij} \log(\hat{Y}_{ij}) + (1 - Y_{ij}) \log(1 - \hat{Y}_{ij}),
+$$
+où $\hat{Y}_{ij} = \left(\sigma(\sigma(XU)V)\right)_{ij}$ est la probabilité que l’espèce animale $j$ soit présente dans l’image $i$, telle qu’estimée par le modèle.
+Il est facile de voir que $\ell$ s’approche de 0 lorsque le modèle assigne des probabilités très proches des bonnes étiquettes : $Y_{ij} \simeq \hat{Y}_{ij}$ pour chaque $i$ et $j$ (ce qui n’arrive jamais en pratique, pour plusieurs raisons). En revanche, $\ell$ peut augmenter extrêmement vite lorsque $Y_{ij}$ et $\hat{Y}_{ij}$ commencent à différer.
+
+Pendant la phase d’entraînement, l’architecture globale ressemble à ceci :
+
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="forward.svg"
+  alt="Passe avant d’un MLP"
+/>
+
+Au cas où vous l’auriez remarqué, j’ai implicitement supposé que plusieurs animaux pouvaient se trouver dans une seule image. C’était volontaire, afin de ne pas avoir à introduire une autre fonction d’activation, appelée fonction softmax. Quel rapport ? Eh bien, si l’on suppose qu’il n’y a qu’un seul animal représenté, alors les probabilités doivent sommer à un entre les espèces : $\sum_j \hat{Y}_{ij} = 1 \quad \forall i$. Il existe une fonction d’activation spécialement conçue pour garantir cette contrainte : softmax. Je ne vais pas entrer dans les détails, mais les mathématiques derrière softmax sont presque identiques au cas de la sigmoïde.
+
+Avant de passer à la partie la plus technique de cet article, faisons une petite modification à la figure précédente. Combinons la deuxième fonction sigmoïde avec la fonction de perte en une seule fonction (une composition des deux), et représentons cette dernière comme un seul bloc dans cette nouvelle figure :
+
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="forward-combined.svg"
+  alt="Passe avant d’un MLP"
+/>
+
+Mathématiquement, cela ne change rien : le nouveau bloc « Sigmoïde$_2$ + Perte » effectue simplement les deux opérations l’une après l’autre, exactement comme avant. Le changement est uniquement conceptuel, mais il nous aidera dans la prochaine section à deux niveaux :
+- Simplifier les dérivées et rendre les calculs moins fastidieux.
+- Permettre des implémentations plus efficaces en pratique (ce qui est une conséquence du premier point).
+
+## Comment fonctionne la rétropropagation
+
+La rétropropagation s’appuie sur l’idée de passe arrière, qui répond à cette question fondamentale : « si l’erreur change un peu, quelle part de responsabilité chaque bloc a-t-il dans ce changement ? ». Chaque bloc reçoit un gradient du bloc qui le suit, utilise ses propres dérivées pour transformer ce gradient, puis transmet le résultat au bloc précédent. C’est cela, la rétropropagation.
+
+### La règle de dérivation en chaîne et la passe arrière
+
+Vous vous souvenez du fonctionnement des dérivées ? Une dérivée partielle $\frac{\partial y}{\partial x}$ quantifie la variation de $y$ lorsque $x$ varie d’une petite proportion. Supposons que $z$ soit une variable qui dépend de $y$, qui dépend elle-même de $x$ ; la **règle de dérivation en chaîne**[^8] fournit une formule indiquant comment $z$ est affecté lorsque $x$ change :
+$$
+\frac{\partial z}{\partial x} = \frac{\partial z}{\partial y} \frac{\partial y}{\partial x}
+$$
+Maintenant, lorsque $z$ dépend de $x$ indirectement à travers plusieurs variables $y_1, y_2, \dotsc$, les variations peuvent simplement être additionnées :
+$$
+\frac{\partial z}{\partial x} = \sum_i \frac{\partial z}{\partial y_i} \frac{\partial y_i}{\partial x}
+$$
+De même, si $z$ dépend de $x$ indirectement à travers plusieurs variables $Y_{1,1}, Y_{1,2}, \dotsc, Y_{2,1}, Y_{2,2}, \dotsc$, où $Y$ est une matrice, les variations s’additionnent également :
+$$
+\frac{\partial z}{\partial x} = \sum_i \sum_j \frac{\partial z}{\partial Y_{ij}} \frac{\partial Y_{ij}}{\partial x}
+$$
+
+**Donc si vous vous demandiez quel est le lien entre les dérivées et les réseaux neuronaux, c’est maintenant que cela commence.** Calculer la dérivée de la fonction de perte par rapport à chaque paramètre du modèle est extrêmement instructif, car cela reflète la manière dont la fonction de perte serait affectée si l’on modifiait ce paramètre. Puisque notre objectif est de *minimiser* la fonction de perte (c’est-à-dire minimiser l’erreur), une approche simple consiste à mettre à jour chaque paramètre dans la *direction opposée à la dérivée*.
+
+Notons que dans notre exemple, il y a $m \times h$ valeurs de paramètres dans $U$, et $h \times c$ valeurs de paramètres dans $V$. Pour utiliser la terminologie des praticiens, on ne dit généralement pas que l’on « calcule les $m \times h$ dérivées de $\ell$ par rapport à chaque valeur de $U$ », mais simplement que l’on « calcule le gradient de $U$ ». Je noterai les gradients de $U$ et $V$ par $\nabla U$ et $\nabla V$, respectivement.
+
+Pour l’instant, mettons de côté certains détails mathématiques des figures précédentes et simplifions la notation à l’aide des matrices $Z^{(1)}$, $Z^{(2)}$ et $Z^{(3)}$. Notons la fonction de perte $\ell$. L’**algorithme de rétropropagation** consiste à calculer les gradients de la manière illustrée dans la figure ci-dessous :
+
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="backprop-simplified.svg"
+  alt="Passes avant et arrière simplifiées"
+/>
+
+C’est précisément pour cette raison que l’algorithme d’estimation du gradient s’appelle l’algorithme de rétropropagation : parce qu’il propage l’information obtenue à la fin (à droite) du réseau vers le début (à gauche), en calculant le gradient de $U$ et de $V$ au passage. Cette approche est valide parce que la règle de dérivation en chaîne peut être appliquée successivement à chaque fonction.
+
+J’ai représenté l’information transmise de bloc en bloc sous la forme des matrices $G^{(1)}$, $G^{(2)}$, $G^{(3)}$ et $G^{(4)}$. Appliquons la **règle de dérivation en chaîne** pour découvrir ce qu’est chacune de ces matrices. C’est ici que les mathématiques commencent à entrer en jeu.
+
+### Le bloc « Sigmoïde + Perte »
+
+Commençons par la fin, et calculons le gradient de $\ell$ par rapport à $Z_{ij}^{(3)}$. C’est direct, parce que $\ell$ ne dépend de rien d’autre que de $Z^{(3)}$. Pour rappel, le dernier bloc combine à la fois la fonction sigmoïde et la fonction d’entropie croisée binaire :
+$$
+\ell = -\frac{1}{nc}\sum_i \sum_j Y_{ij} \log(\sigma(Z_{ij}^{(3)})) + (1 - Y_{ij}) \log(1 - \sigma(Z_{ij}^{(3)}))
+$$
+Avant de calculer la dérivée de $\ell$ par rapport à $Z_{ij}^{(3)}$, gardons à l’esprit un fait important à propos de la fonction sigmoïde. L’une de ses propriétés intéressantes est la simplicité de sa dérivée :
+$$
+\frac{\partial \sigma(x)}{\partial x} = \sigma(x) (1 - \sigma(x)).
+$$
+Avec cette nouvelle information, le calcul des dérivées s’avère assez simple :
+$$
+\begin{aligned}
+\frac{\partial \ell}{\partial Z_{ij}^{(3)}} & = -\frac{1}{nc} \frac{\partial}{\partial Z_{ij}^{(3)}} \left( Y_{ij} \log(\sigma(Z_{ij}^{(3)})) + (1 - Y_{ij}) \log(1 - \sigma(Z_{ij}^{(3)})) \right) \\
+& = -\frac{1}{nc} \left( Y_{ij} \frac{1}{\sigma(Z_{ij}^{(3)})} \frac{\partial \sigma(Z_{ij}^{(3)})}{\partial Z_{ij}^{(3)}} + (1 - Y_{ij}) \frac{-1}{1 - \sigma(Z_{ij}^{(3)})} \frac{\partial \sigma(Z_{ij}^{(3)})}{\partial Z_{ij}^{(3)}} \right) \\
+& = -\frac{1}{nc} \left( Y_{ij} \frac{1}{\sigma(Z_{ij}^{(3)})} \sigma(Z_{ij}^{(3)}) \left( 1 - \sigma(Z_{ij}^{(3)}) \right) + (1 - Y_{ij}) \frac{-1}{1 - \sigma(Z_{ij}^{(3)})} \sigma(Z_{ij}^{(3)}) \left( 1 - \sigma(Z_{ij}^{(3)}) \right) \right) \\
+& = -\frac{1}{nc} \left( Y_{ij} \left( 1 - \sigma(Z_{ij}^{(3)}) \right) - (1 - Y_{ij}) \sigma(Z_{ij}^{(3)}) \right) \\
+& = q \left( \sigma(Z_{ij}^{(3)}) - Y_{ij} \right), \\
+\end{aligned}
+$$
+où j’ai défini le facteur de normalisation $q := \frac{1}{nc}$ par commodité notationnelle.
+
+La dérivée s’avère être simplement la différence entre l’annotation et la probabilité estimée, multipliée par $q$. Si, à la place, nous avions calculé séparément les dérivées de la fonction de perte et de la fonction sigmoïde, puis les avions multipliées ensuite, cela aurait introduit des étapes intermédiaires inutiles qui ralentiraient les réseaux neuronaux en pratique. Ici, l’implémentation devient beaucoup plus élégante et efficace en regroupant en un seul bloc une composition de deux fonctions mathématiques connues pour très bien fonctionner ensemble. Les bibliothèques de deep learning célèbres, comme PyTorch, connaissent bien ce type d’optimisations et proposent des blocs dédiés avec des implémentations efficaces.
+
+Réécrivons maintenant le résultat mathématique que nous venons de trouver sous forme matricielle (en regroupant toutes les dérivées partielles individuelles dans une seule matrice $G^{(4)}$, plus facile à lire) :
+$$
+G^{(4)} = q \left( \sigma(Z^{(3)}) - Y \right).
+$$
+
+Nous obtenons le bloc suivant, qui définit :
+- La **passe avant** : comment calculer la fonction de perte à partir d’une entrée, représentée par les flèches allant de gauche à droite dans la figure ci-dessous.
+- La **passe arrière** : comment calculer le gradient de cette entrée, représentée par la flèche allant de droite à gauche.
+Pour rendre plus évident que les mathématiques sont les mêmes quel que soit le reste de l’architecture du modèle, j’ai supprimé le $^{(3)}$ de $Z^{(3)}$ dans la figure :
+
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="backprop-final-block.svg"
+  alt="Passe avant et passe arrière du bloc final"
+/>
+
+Si vous êtes arrivé jusqu’ici, bravo ! Les prochaines sections répéteront simplement la même logique sur d’autres blocs, il n’y aura donc pas grand-chose de nouveau.
+
+### Le bloc « entièrement connecté »
+
+L’étape suivante consiste à calculer le gradient de $\ell$ par rapport à $Z^{(2)}$. Là encore, c’est direct, car $Z^{(3)}$ ne dépend de rien d’autre que de $Z^{(2)}$. Grâce à la règle de dérivation en chaîne, nous savons que $G^{(3)}$ dépend de $G^{(4)}$. Autrement dit, la dérivée $\frac{\partial \ell}{\partial Z_{ij}^{(2)}}$ repose nécessairement sur la dérivée $\frac{\partial \ell}{\partial Z_{ij}^{(3)}}$, que nous avons calculée dans la section précédente :
+
+$$
+\begin{aligned}
+\frac{\partial \ell}{\partial Z_{ij}^{(2)}} & = \sum_k \sum_l \frac{\partial \ell}{\partial Z_{kl}^{(3)}} \frac{\partial Z_{kl}^{(3)}}{\partial Z_{ij}^{(2)}} \\
+& = \sum_k \sum_l \frac{\partial \ell}{\partial Z_{kl}^{(3)}} \frac{\partial \left(\sum_r Z_{kr}^{(2)}V_{rl}\right)}{\partial Z_{ij}^{(2)}} \\
+& = \sum_l \frac{\partial \ell}{\partial Z_{il}^{(3)}} \sum_r \frac{\partial \left(Z_{ir}^{(2)}V_{rl}\right)}{\partial Z_{ij}^{(2)}} \\
+& = \sum_l \frac{\partial \ell}{\partial Z_{il}^{(3)}} V_{jl} \\
+& = \sum_l \frac{\partial \ell}{\partial Z_{il}^{(3)}} V_{lj}^T \\
+\end{aligned}
+$$
+
+Sous forme matricielle, cela revient à dire que :
+$$
+G^{(3)} = G^{(4)}V^T.
+$$
+
+Malheureusement, cela ne nous donne pas ce qui nous intéresse vraiment : le gradient de notre matrice de paramètres $V$, appelé $\nabla V$. Pour cela, nous devons dériver par rapport à $V_{ij}$ à la place. À nouveau, en utilisant la règle de dérivation en chaîne :
+
+$$
+\begin{aligned}
+\frac{\partial \ell}{\partial V_{ij}} & = \sum_k \sum_l \frac{\partial \ell}{\partial Z_{kl}^{(3)}} \frac{\partial Z_{kl}^{(3)}}{\partial V_{ij}} \\
+& = \sum_k \sum_l \frac{\partial \ell}{\partial Z_{kl}^{(3)}} \frac{\partial \left(\sum_r Z_{kr}^{(2)}V_{rl}\right)}{\partial V_{ij}} \\
+& = \sum_k \frac{\partial \ell}{\partial Z_{kj}^{(3)}} \sum_r \frac{\partial \left(Z_{kr}^{(2)}V_{rj}\right)}{\partial V_{ij}} \\
+& = \sum_k \frac{\partial \ell}{\partial Z_{kj}^{(3)}} Z_{ki}^{(2)} \\
+& = \sum_k \left(Z_{ik}^{(2)}\right)^T \frac{\partial \ell}{\partial Z_{kj}^{(3)}} \\
+\end{aligned}
+$$
+
+Sous forme matricielle, cela revient à dire que :
+$$
+\nabla V = \left(Z^{(2)}\right)^T G^{(4)}.
+$$
+
+Nous avons maintenant un bloc qui définit la passe avant, ainsi que la passe arrière :
+
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="backprop-fc-block.svg"
+  alt="Passe avant et passe arrière du bloc entièrement connecté"
+/>
+
+Étant donnée une entrée $Z$, la sortie de la fonction est $ZV$. Étant donné un gradient $G$ reçu pendant la passe arrière, le gradient de la matrice de paramètres $V$ est égal à $Z^T G$, et le gradient à rétropropager est $GV^T$.
+
+Si vous faites de la programmation Python, j’ai co-développé une bibliothèque minimale de deep learning à visée pédagogique, appelée BGD. Les passes avant et arrière du bloc entièrement connecté sont définies ici :
+[https://github.com/AntoinePassemiers/Beyond-Gradient-Descent/blob/master/src/bgd/layers/fc.py](https://github.com/AntoinePassemiers/Beyond-Gradient-Descent/blob/master/src/bgd/layers/fc.py)
+
+### Le bloc « Sigmoïde »
+
+Voici maintenant le bloc le plus simple. Grâce aux sections précédentes, nous connaissons déjà la dérivée de la fonction sigmoïde. Appliquons la règle de dérivation en chaîne une fois de plus :
+
+$$
+\begin{aligned}
+\frac{\partial \ell}{\partial Z_{ij}^{(1)}} & = \sum_k \sum_l \frac{\partial \ell}{\partial Z_{kl}^{(2)}} \frac{\partial Z_{kl}^{(2)}}{\partial Z_{ij}^{(1)}} \\
+& = \sum_k \sum_l \frac{\partial \ell}{\partial Z_{kl}^{(2)}} \frac{\partial \sigma(Z_{kl}^{(1)})}{\partial Z_{ij}^{(1)}} \\
+& = \frac{\partial \ell}{\partial Z_{ij}^{(2)}} \sigma(Z_{ij}^{(1)}) \left( 1 - \sigma(Z_{ij}^{(1)}) \right) \\
+& = \frac{\partial \ell}{\partial Z_{ij}^{(2)}} \sigma'(Z_{ij}^{(1)}), \\
+\end{aligned}
+$$
+où j’ai défini $\sigma'(x) := \sigma(x) (1 - \sigma(x))$ par commodité notationnelle. Sous forme matricielle, tout cela revient à dire que :
+$$
+G^{(2)} = G^{(3)} \odot \sigma'(Z^{(1)}).
+$$
+
+Le bloc Sigmoïde est illustré ci-dessous :
+
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="backprop-sigmoid-block.svg"
+  alt="Passe avant et passe arrière du bloc Sigmoïde"
+/>
+
+Les passes avant et arrière du bloc Sigmoïde sont également définies dans BGD, si les détails d’implémentation vous intéressent :
+[https://github.com/AntoinePassemiers/Beyond-Gradient-Descent/blob/master/src/bgd/layers/activation.py](https://github.com/AntoinePassemiers/Beyond-Gradient-Descent/blob/master/src/bgd/layers/activation.py)
+
+### Inutile d’aller plus loin
+
+Il reste un bloc à parcourir : « Entièrement connecté$_1$ ». Cependant, il est mécaniquement identique à « Entièrement connecté$_2$ », dont le comportement a été décrit dans une section précédente.
+
+Par souci d’exhaustivité, voici les gradients :
+$$
+\begin{aligned}
+G^{(1)} & = G^{(2)}U^T, \\
+\nabla U & = X^T G^{(2)}.
+\end{aligned}
+$$
+
+### Assembler les blocs
+
+Juste pour l’illustration, assemblons toutes les formules que nous avons trouvées, afin d’avoir une idée de l’apparence des gradients complets :
+
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="full.svg"
+  alt="Passe avant + passe arrière d’un MLP"
+/>
+
+Nous avons maintenant des formules de gradients concrètes, prêtes à être implémentées :
+$$
+\begin{aligned}
+\nabla U & = X^T \left( q(\sigma(\sigma(XU)V) - Y) V^T \odot \sigma'(XU) \right \\
+\nabla V & = \sigma(XU)^T q(\sigma(\sigma(XU)V) - Y) \\
+\end{aligned}
+$$
+
+Si cela vous semble écrasant, vous pouvez simplement oublier cette figure. Ces formules ne sont jamais implémentées explicitement dans les bibliothèques de deep learning, car seuls les mécanismes internes des blocs doivent être définis, comme nous l’avons fait dans les sections précédentes.
+
+## Algorithmes d’entraînement
+
+### Descente de gradient
+
+J’espère ne pas vous avoir perdu en route, parce que le moment est enfin venu de donner une vue d’ensemble de la manière dont les réseaux neuronaux sont réellement entraînés. Nous avons déjà discuté de toutes les étapes impliquées dans l’entraînement, mais l’algorithme d’entraînement peut prendre différentes formes. L’approche la plus directe s’appelle la « descente de gradient », et consiste à mettre à jour répétitivement les paramètres en suivant la direction opposée au gradient de la fonction de perte :
+
+- Collecter un jeu de données sous la forme d’une matrice $X$.
+- Initialiser les matrices $U$ et $V$ avec des valeurs aléatoires.
+- Répéter jusqu’à convergence :
+  - Calculer $\ell$ en effectuant la passe avant sur $X$.
+  - Obtenir $\nabla U$ et $\nabla V$ pendant la passe arrière.
+  - Mettre à jour les paramètres :
+    - Remplacer $U$ par $U - \lambda \nabla U$.
+    - Remplacer $V$ par $V - \lambda \nabla V$.
+
+$\lambda$ s’appelle le taux d’apprentissage, et détermine la taille du pas que nous faisons chaque fois que les paramètres sont mis à jour. Pour garantir que l’algorithme converge, $\lambda$ doit être suffisamment petit.
+
+Note : bien sûr, l’algorithme présenté ici est adapté à notre exemple. En pratique, les modèles complexes impliquent beaucoup plus de matrices de paramètres que seulement $U$ et $V$. En réalité, ils peuvent impliquer davantage que des matrices, typiquement des **tenseurs**. Le tenseur est une généralisation des matrices, où la dimensionnalité n’est pas limitée à deux (lignes et colonnes). TensorFlow, une autre bibliothèque de deep learning célèbre, tire son nom des tenseurs.
+
+Vous vous demandez peut-être pourquoi il faut plusieurs étapes pour entraîner le modèle, et pourquoi nous ne pourrions pas simplement utiliser une grande valeur pour $\lambda$, afin d’accélérer les choses et éventuellement résoudre le problème en une seule étape. La réponse est simple : nous ne pouvons pas. Nous nous sommes tiré une balle dans le pied en introduisant des fonctions d’activation et une fonction de perte, qui sont non linéaires par nature. À cause de cette non-linéarité, les gradients $\nabla U$ et $\nabla V$ ne sont pas les mêmes partout : leur direction change selon les valeurs de $U$ et $V$, et peut même prendre des directions opposées d’une étape à l’autre.
+
+<ResponsiveImage
+  folder="/images/backpropagation-algorithm"
+  filename="convergence.svg"
+  alt="Échec de convergence lorsque le taux d’apprentissage est grand"
+/>
+
+La figure ci-dessus illustre ce qui se passe lorsque l’on choisit une valeur de $\lambda$ trop grande. Comme l’illustration est en 2D, elle ne fonctionne que pour des modèles ayant un seul paramètre, et non $m \times h$ + $h \times c$ comme dans notre cas. Mais l’explication reste valable en 3D, 4D, etc. Lorsque l’on suit la direction de la dérivée (la direction de gauche à droite, qui correspond à la pente) et que l’on fait un petit pas, la fonction de perte diminue. En revanche, lorsque $\lambda$ est trop grand, non seulement la fonction de perte n’est plus garantie de diminuer, mais elle peut aussi augmenter ! Pire encore, le paramètre peut se retrouver dans une région de la fonction de perte où la pente est encore plus raide, produisant donc des dérivées de plus grande magnitude, ce qui entraîne des pas plus grands... et peut déclencher un effet boule de neige, rendre l’entraînement instable, et finalement provoquer des erreurs mathématiques et une défaillance critique du programme. L’objectif est de minimiser la fonction de perte, pas de la maximiser accidentellement en essayant de la minimiser.
+
+Les praticiens recommandent généralement d’utiliser une petite valeur pour le taux d’apprentissage $\lambda$ (par exemple $10^{-5}$), et de ne l’augmenter que si l’algorithme converge à un rythme déraisonnablement lent.
+
+### Descente de gradient stochastique
+
+Un inconvénient majeur de l’algorithme de descente de gradient est qu’il est extrêmement coûteux et inefficace lorsque la matrice de données $X$ est grande. En pratique, on utilise plutôt la version « stochastique » de l’algorithme. L’idée est d’introduire un certain degré de randomisation en utilisant un sous-ensemble des lignes de $X$ à chaque étape. Le nombre de lignes s’appelle la **taille de batch**. Lorsque la taille de batch est trop grande, l’entraînement est drastiquement ralenti. À l’inverse, lorsque la taille de batch est trop faible, les gradients reposent sur trop peu de données pour être fiables ou informatifs, et risquent simplement de perturber le modèle. Le reste de l’algorithme reste exactement le même :
+
+- Collecter un jeu de données sous la forme d’une matrice $X$.
+- Initialiser les matrices $U$ et $V$ avec des valeurs aléatoires.
+- Répéter jusqu’à convergence :
+  - Créer une nouvelle matrice $X^{(b)}$ en prenant un petit sous-ensemble aléatoire des lignes contenues dans $X$, appelé un batch.
+  - Calculer $\ell$ en effectuant la passe avant sur $X^{(b)}$.
+  - Obtenir $\nabla U$ et $\nabla V$ pendant la passe arrière.
+  - Mettre à jour les paramètres :
+    - Remplacer $U$ par $U - \lambda \nabla U$.
+    - Remplacer $V$ par $V - \lambda \nabla V$.
+
+### L’optimiseur Adam
+
+Pour entraîner des modèles plus complexes, la descente de gradient stochastique ne suffit pas, car l’entraînement devient plus hasardeux. Pour stabiliser les mises à jour des paramètres d’une étape à l’autre, il a été proposé de partager de l’information entre les étapes : chaque mise à jour de paramètre dépend désormais de la manière dont nous avons mis à jour ce paramètre au cours des étapes précédentes. De nombreuses approches fondées sur cette idée ont été proposées, comme Momentum, Adadelta, Adagrad, ..., et l’optimiseur Adam, très largement utilisé [^9]. Je ne vais pas entrer dans les détails, car comprendre Adam n’est pas un prérequis pour comprendre le deep learning. Dans tous les cas, les détails mathématiques sont bien plus simples que ce que j’ai présenté dans cet article.
+
+## Résumé
+
+En résumé, nous avons vu que :
+- Les réseaux neuronaux ont besoin de fonctions d’activation pour pouvoir s’adapter à n’importe quelles données.
+- Les problèmes complexes nécessitent de l’abstraction, qui peut être obtenue en empilant de nombreuses couches avec aussi peu de paramètres que nécessaire pour résoudre ces problèmes.
+- Les réseaux neuronaux ayant trop de paramètres sont sujets au surapprentissage.
+- La performance du modèle sur les données est évaluée à l’aide d’une fonction de perte, qui doit être minimisée.
+- La minimisation nécessite de suivre la direction opposée au gradient.
+- Les gradients peuvent être estimés élégamment en appliquant l’algorithme de rétropropagation, fondé sur la règle de dérivation en chaîne.
+
+De nombreux autres concepts gravitent autour de ce sujet, que vous pouvez explorer si vous voulez en apprendre davantage et devenir vous-même praticien en machine learning. Parmi ces concepts, mentionnons :
+- Tous les blocs disponibles dans les bibliothèques de deep learning, comme la **convolution 1D**, la **convolution 2D**, la **convolution 3D**, les **transformers**, les **fonctions d’activation paramétriques**, les **couches récurrentes**, le **max pooling 1D**, l’**average pooling 1D**, etc.
+- La **régularisation**, un mécanisme utilisé pour atténuer les problèmes de surapprentissage.
+- Les problèmes de **gradient évanescent** et de **gradient explosif**. Lorsque les réseaux neuronaux possèdent un grand nombre de couches, ils sont essentiellement une composition de nombreuses fonctions, et les gradients sont des produits de nombreuses matrices (ou tenseurs). Dans notre exemple, $\nabla U = X^T q(\sigma(\sigma(XU)V) - Y) V^T \odot \sigma'(XU)$, ce qui implique beaucoup de multiplications. Lorsque le nombre de couches est très grand (par exemple supérieur à 20), le nombre de multiplications successives est si élevé que les gradients peuvent devenir excessivement petits (gradient évanescent) ou grands (gradient explosif), entraînant des problèmes de convergence. Une solution consiste à avoir recours aux **connexions résiduelles**. Consultez les **réseaux neuronaux résiduels** pour plus de détails.
+- L’**initialisation** des paramètres. J’ai dit que ces derniers devaient être aléatoires au début de l’entraînement (ce qui est vrai), mais je n’ai pas mentionné qu’il existe des manières particulières de le faire, en utilisant des distributions de probabilité spécifiques.
+- Les autres tâches pouvant être traitées par les réseaux neuronaux. J’ai présenté comment résoudre un problème de classification, mais j’ai omis l’autre tâche principale : la **régression**. Ne vous inquiétez pas, les deux tâches sont très similaires et les mathématiques présentées ici peuvent être étendues trivialement au cas de la régression.
+- Des architectures particulières qui valent clairement la peine d’être expliquées : les **autoencodeurs**, les **réseaux antagonistes génératifs**, etc.
+
+Dans tous les cas, j’espère que cette lecture vous a intéressé, et que vous avez appris beaucoup de choses !
+
+
+[^1]: https://en.wikipedia.org/wiki/Indian_peafowl
+[^2]: Passemiers, Antoine, et al. "A quantitative benchmark of neural network feature selection methods for detecting nonlinear signals." _Scientific Reports_ 14 (2024): 31180.
+[^3]: Cybenko, George. "Approximation by superpositions of a sigmoidal function." _Mathematics of control, signals and systems_ 2.4 (1989): 303-314.
+[^4]: Brown, Tom, et al. "Language models are few-shot learners." _Advances in neural information processing systems_ 33 (2020): 1877-1901.
+[^5]: LeCun, Yann, et al. "Backpropagation applied to handwritten zip code recognition." _Neural computation_ 1.4 (1989): 541-551.
+[^6]: Vaswani, Ashish, et al. "Attention is all you need." _Advances in neural information processing systems_ 30 (2017).
+[^7]: https://huggingface.co/
+[^8]: https://en.wikipedia.org/wiki/Chain_rule
+[^9]: Kingma, Diederik P., and Jimmy Ba. "Adam: A method for stochastic optimization." _arXiv preprint arXiv:1412.6980_ (2014).
