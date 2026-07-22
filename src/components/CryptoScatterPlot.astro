@@ -1,0 +1,1660 @@
+---
+type ExtraValue =
+  | string
+  | number
+  | boolean
+  | string[]
+  | null;
+
+interface ScatterPointExtra {
+  categories?: string[];
+  asset_kind?: ExtraValue;
+  canonical_blockchain?: ExtraValue;
+  ethereum_based?: ExtraValue;
+  level?: ExtraValue;
+  consensus_model?: ExtraValue;
+  ledger_model?: ExtraValue;
+  mining_hash_algorithm?: ExtraValue;
+  gas_token?: ExtraValue;
+}
+
+interface ScatterPoint {
+  x: number;
+  y: number;
+  name?: string;
+  label?: string;
+  size?: number;
+  icon?: string;
+  iconUrl?: string;
+  extra?: ScatterPointExtra;
+}
+
+interface Props {
+  points: ScatterPoint[];
+  xLabel?: string;
+  yLabel?: string;
+  height?: number;
+}
+
+const {
+  points,
+  xLabel = "X",
+  yLabel = "Y",
+  height = 420,
+} = Astro.props;
+---
+
+<scatter-plot-widget
+  class="scatter-widget"
+  data-points={JSON.stringify(points)}
+  data-x-label={xLabel}
+  data-y-label={yLabel}
+>
+  <div
+    class="scatter-chart"
+    data-chart
+    style={`height: ${height}px`}
+  ></div>
+
+  <article
+    class="scatter-details"
+    data-details
+    aria-live="polite"
+    tabindex="-1"
+    hidden
+  >
+    <div class="scatter-details__header">
+      <div class="scatter-details__identity">
+        <img
+          class="scatter-details__icon"
+          data-details-icon
+          width="44"
+          height="44"
+          alt=""
+          hidden
+        />
+
+        <div>
+          <h3 data-title></h3>
+
+          <p
+            class="scatter-details__ticker"
+            data-ticker
+            hidden
+          ></p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="scatter-details__close"
+        data-close
+        aria-label="Close token details"
+      >
+        ×
+      </button>
+    </div>
+
+    <dl
+      class="scatter-metadata"
+      data-metadata
+      hidden
+    >
+      <div
+        class="scatter-metadata__row"
+        data-metadata-row
+        hidden
+      >
+        <dt>Asset kind</dt>
+        <dd data-asset-kind></dd>
+      </div>
+
+      <div
+        class="scatter-metadata__row"
+        data-metadata-row
+        hidden
+      >
+        <dt>Blockchain</dt>
+        <dd data-canonical-blockchain></dd>
+      </div>
+
+      <div
+        class="scatter-metadata__row"
+        data-metadata-row
+        hidden
+      >
+        <dt>Ethereum-based?</dt>
+        <dd data-ethereum-based></dd>
+      </div>
+
+      <div
+        class="scatter-metadata__row"
+        data-metadata-row
+        hidden
+      >
+        <dt>Level</dt>
+        <dd data-level></dd>
+      </div>
+
+      <div
+        class="scatter-metadata__row"
+        data-metadata-row
+        hidden
+      >
+        <dt>Consensus model</dt>
+        <dd data-consensus-model></dd>
+      </div>
+
+      <div
+        class="scatter-metadata__row"
+        data-metadata-row
+        hidden
+      >
+        <dt>Ledger model</dt>
+        <dd data-ledger-model></dd>
+      </div>
+
+      <div
+        class="scatter-metadata__row"
+        data-metadata-row
+        hidden
+      >
+        <dt>Mining hash algorithm</dt>
+        <dd data-mining-hash-algorithm></dd>
+      </div>
+
+      <div
+        class="scatter-metadata__row"
+        data-metadata-row
+        hidden
+      >
+        <dt>Gas token</dt>
+        <dd data-gas-token></dd>
+      </div>
+    </dl>
+
+    <br>
+
+    <div
+      class="scatter-tags"
+      data-tags
+    ></div>
+  </article>
+</scatter-plot-widget>
+
+<script>
+  import * as echarts from "echarts/core";
+  import { ScatterChart } from "echarts/charts";
+  import {
+    DataZoomComponent,
+    GridComponent,
+    ToolboxComponent,
+    TooltipComponent,
+  } from "echarts/components";
+  import { SVGRenderer } from "echarts/renderers";
+
+  echarts.use([
+    ScatterChart,
+    DataZoomComponent,
+    GridComponent,
+    ToolboxComponent,
+    TooltipComponent,
+    SVGRenderer,
+  ]);
+
+  type ExtraValue =
+    | string
+    | number
+    | boolean
+    | string[]
+    | null;
+
+  interface ScatterPointExtra {
+    categories?: string[];
+    asset_kind?: ExtraValue;
+    canonical_blockchain?: ExtraValue;
+    ethereum_based?: ExtraValue;
+    level?: ExtraValue;
+    consensus_model?: ExtraValue;
+    ledger_model?: ExtraValue;
+    mining_hash_algorithm?: ExtraValue;
+    gas_token?: ExtraValue;
+  }
+
+  interface ScatterPoint {
+    x: number;
+    y: number;
+    name?: string;
+    label?: string;
+    size?: number;
+    icon?: string;
+    iconUrl?: string;
+    extra?: ScatterPointExtra;
+  }
+
+  interface ChartPoint {
+    name: string;
+    value: [number, number];
+    symbol: string;
+    symbolSize: number;
+  }
+
+  interface ScatterEvent {
+    seriesType?: string;
+    dataIndex?: number;
+    value?: [number, number];
+  }
+
+  function cryptoIconUrl(
+    name: string,
+  ): string {
+    const iconName = name
+      .trim()
+      .toLowerCase()
+      .replace(/\.(png|webp|svg)$/i, "");
+
+    return (
+      "https://raw.githubusercontent.com/" +
+      "spothq/cryptocurrency-icons/master/32/color/" +
+      `${encodeURIComponent(iconName)}.png`
+    );
+  }
+
+  function pointDisplayName(
+    point: ScatterPoint,
+  ): string {
+    const name = point.name?.trim();
+
+    if (name) {
+      return name;
+    }
+
+    const label = point.label?.trim();
+
+    if (label) {
+      return label;
+    }
+
+    return "Unnamed token";
+  }
+
+  function pointTicker(
+    point: ScatterPoint,
+  ): string | undefined {
+    const label = point.label?.trim();
+    const name = point.name?.trim();
+
+    if (!label || label === name) {
+      return undefined;
+    }
+
+    return label;
+  }
+
+  function pointCategories(
+    point: ScatterPoint,
+  ): string[] {
+    const categories =
+      point.extra?.categories;
+
+    if (!Array.isArray(categories)) {
+      return [];
+    }
+
+    const cleanedCategories =
+      categories
+        .filter(
+          (category): category is string =>
+            typeof category === "string" &&
+            category.trim().length > 0,
+        )
+        .map((category) => category.trim());
+
+    return [...new Set(cleanedCategories)];
+  }
+
+  function formatExtraValue(
+    value: unknown,
+  ): string | undefined {
+    if (Array.isArray(value)) {
+      const values = value
+        .filter(
+          (item): item is string =>
+            typeof item === "string" &&
+            item.trim().length > 0,
+        )
+        .map((item) => item.trim());
+
+      return values.length > 0
+        ? values.join(", ")
+        : undefined;
+    }
+
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+
+      return trimmed || undefined;
+    }
+
+    if (
+      typeof value === "number" &&
+      Number.isFinite(value)
+    ) {
+      return String(value);
+    }
+
+    if (typeof value === "boolean") {
+      return value ? "Yes" : "No";
+    }
+
+    return undefined;
+  }
+
+  function pointIconUrl(
+    point: ScatterPoint,
+  ): string | undefined {
+    const customUrl =
+      point.iconUrl?.trim();
+
+    if (customUrl) {
+      return customUrl;
+    }
+
+    const iconName =
+      point.icon?.trim();
+
+    if (iconName) {
+      return cryptoIconUrl(iconName);
+    }
+
+    return undefined;
+  }
+
+  function absoluteUrl(
+    url: string,
+  ): string {
+    try {
+      return new URL(
+        url,
+        document.baseURI,
+      ).href;
+    } catch {
+      return url;
+    }
+  }
+
+  function pointSize(
+    point: ScatterPoint,
+  ): number {
+    if (
+      typeof point.size === "number" &&
+      Number.isFinite(point.size) &&
+      point.size > 0
+    ) {
+      return point.size;
+    }
+
+    return 28;
+  }
+
+  /**
+   * Finds the first element elsewhere in the page whose
+   * data-category value exactly matches the category.
+   *
+   * The target can be any HTML or MDX-rendered element.
+   */
+  function findCategoryTarget(
+    category: string,
+  ): HTMLElement | undefined {
+    const candidates =
+      document.querySelectorAll<HTMLElement>(
+        "[data-category]",
+      );
+
+    for (const candidate of candidates) {
+      if (
+        candidate.getAttribute(
+          "data-category",
+        ) === category
+      ) {
+        return candidate;
+      }
+    }
+
+    return undefined;
+  }
+
+  function scrollBelowNavbar(
+    element: HTMLElement,
+  ): void {
+    const navbar =
+      document.querySelector<HTMLElement>(
+        "[data-navbar]",
+      );
+
+    const navbarHeight =
+      navbar?.getBoundingClientRect()
+        .height ?? 0;
+
+    const extraSpacing = 16;
+
+    const targetPosition =
+      window.scrollY +
+      element.getBoundingClientRect().top -
+      navbarHeight -
+      extraSpacing;
+
+    window.scrollTo({
+      top: Math.max(
+        0,
+        targetPosition,
+      ),
+      behavior: "smooth",
+    });
+  }
+
+  function preloadImage(
+    url: string,
+    signal: AbortSignal,
+    useCors = false,
+  ): Promise<HTMLImageElement> {
+    return new Promise(
+      (resolve, reject) => {
+        if (signal.aborted) {
+          reject(
+            new DOMException(
+              "Image loading was aborted.",
+              "AbortError",
+            ),
+          );
+
+          return;
+        }
+
+        const image = new Image();
+        let settled = false;
+
+        const cleanup = (): void => {
+          image.onload = null;
+          image.onerror = null;
+
+          signal.removeEventListener(
+            "abort",
+            handleAbort,
+          );
+        };
+
+        const finish = (
+          callback: () => void,
+        ): void => {
+          if (settled) {
+            return;
+          }
+
+          settled = true;
+          cleanup();
+          callback();
+        };
+
+        const handleAbort = (): void => {
+          image.src = "";
+
+          finish(() => {
+            reject(
+              new DOMException(
+                "Image loading was aborted.",
+                "AbortError",
+              ),
+            );
+          });
+        };
+
+        image.onload = () => {
+          finish(() => resolve(image));
+        };
+
+        image.onerror = () => {
+          finish(() => {
+            reject(
+              new Error(
+                `Could not load image: ${url}`,
+              ),
+            );
+          });
+        };
+
+        if (useCors) {
+          image.crossOrigin =
+            "anonymous";
+        }
+
+        signal.addEventListener(
+          "abort",
+          handleAbort,
+          { once: true },
+        );
+
+        image.src = url;
+      },
+    );
+  }
+
+  function canvasToBlob(
+    canvas: HTMLCanvasElement,
+  ): Promise<Blob> {
+    return new Promise(
+      (resolve, reject) => {
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+              return;
+            }
+
+            reject(
+              new Error(
+                "Could not create the circular icon.",
+              ),
+            );
+          },
+          "image/png",
+        );
+      },
+    );
+  }
+
+  /**
+   * Center-crops an image into a circular PNG.
+   */
+  async function createRoundIconUrl(
+    sourceUrl: string,
+    displayedSize: number,
+    signal: AbortSignal,
+    objectUrls: string[],
+  ): Promise<string> {
+    const image =
+      await preloadImage(
+        sourceUrl,
+        signal,
+        true,
+      );
+
+    if (
+      image.naturalWidth <= 0 ||
+      image.naturalHeight <= 0
+    ) {
+      throw new Error(
+        "The image has invalid dimensions.",
+      );
+    }
+
+    const outputSize = Math.max(
+      64,
+      Math.ceil(displayedSize * 2),
+    );
+
+    const canvas =
+      document.createElement("canvas");
+
+    canvas.width = outputSize;
+    canvas.height = outputSize;
+
+    const context =
+      canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error(
+        "The browser does not support canvas rendering.",
+      );
+    }
+
+    const scale = Math.max(
+      outputSize /
+        image.naturalWidth,
+      outputSize /
+        image.naturalHeight,
+    );
+
+    const renderedWidth =
+      image.naturalWidth * scale;
+
+    const renderedHeight =
+      image.naturalHeight * scale;
+
+    const renderedX =
+      (outputSize - renderedWidth) / 2;
+
+    const renderedY =
+      (outputSize - renderedHeight) / 2;
+
+    context.clearRect(
+      0,
+      0,
+      outputSize,
+      outputSize,
+    );
+
+    context.save();
+    context.beginPath();
+
+    context.arc(
+      outputSize / 2,
+      outputSize / 2,
+      outputSize / 2,
+      0,
+      Math.PI * 2,
+    );
+
+    context.closePath();
+    context.clip();
+
+    context.drawImage(
+      image,
+      renderedX,
+      renderedY,
+      renderedWidth,
+      renderedHeight,
+    );
+
+    context.restore();
+
+    const blob =
+      await canvasToBlob(canvas);
+
+    const objectUrl =
+      URL.createObjectURL(blob);
+
+    objectUrls.push(objectUrl);
+
+    return objectUrl;
+  }
+
+  async function resolvePointSymbol(
+    point: ScatterPoint,
+    signal: AbortSignal,
+    objectUrls: string[],
+  ): Promise<string> {
+    const sourceUrl =
+      pointIconUrl(point);
+
+    if (!sourceUrl) {
+      return "circle";
+    }
+
+    const resolvedUrl =
+      absoluteUrl(sourceUrl);
+
+    if (point.iconUrl?.trim()) {
+      try {
+        const roundIconUrl =
+          await createRoundIconUrl(
+            resolvedUrl,
+            pointSize(point),
+            signal,
+            objectUrls,
+          );
+
+        return `image://${roundIconUrl}`;
+      } catch (error) {
+        if (
+          error instanceof DOMException &&
+          error.name === "AbortError"
+        ) {
+          return "circle";
+        }
+
+        console.warn(
+          `Could not crop the icon for "${pointDisplayName(point)}".`,
+          {
+            url: resolvedUrl,
+            error,
+          },
+        );
+
+        try {
+          await preloadImage(
+            resolvedUrl,
+            signal,
+            false,
+          );
+
+          return `image://${resolvedUrl}`;
+        } catch (fallbackError) {
+          console.warn(
+            `Could not load the fallback icon for "${pointDisplayName(point)}".`,
+            {
+              url: resolvedUrl,
+              error: fallbackError,
+            },
+          );
+
+          return "circle";
+        }
+      }
+    }
+
+    try {
+      await preloadImage(
+        resolvedUrl,
+        signal,
+        false,
+      );
+
+      return `image://${resolvedUrl}`;
+    } catch (error) {
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError"
+      ) {
+        return "circle";
+      }
+
+      console.warn(
+        `Could not load the icon for "${pointDisplayName(point)}".`,
+        {
+          url: resolvedUrl,
+          error,
+        },
+      );
+
+      return "circle";
+    }
+  }
+
+  function createChartPoint(
+    point: ScatterPoint,
+    symbol = "circle",
+  ): ChartPoint {
+    return {
+      name:
+        pointDisplayName(point),
+      value: [
+        point.x,
+        point.y,
+      ],
+      symbol,
+      symbolSize:
+        pointSize(point),
+    };
+  }
+
+  function escapeHtml(
+    value: unknown,
+  ): string {
+    const element =
+      document.createElement("div");
+
+    element.textContent =
+      String(value ?? "");
+
+    return element.innerHTML;
+  }
+
+  class ScatterPlotWidget
+    extends HTMLElement {
+    private chart?: echarts.ECharts;
+    private resizeObserver?: ResizeObserver;
+    private abortController?: AbortController;
+    private closeButton?: HTMLButtonElement;
+
+    private points: ScatterPoint[] = [];
+    private objectUrls: string[] = [];
+    private mounting = false;
+
+    connectedCallback(): void {
+      if (
+        this.chart ||
+        this.mounting
+      ) {
+        return;
+      }
+
+      this.mounting = true;
+
+      void this.mount().finally(
+        () => {
+          this.mounting = false;
+        },
+      );
+    }
+
+    private async mount(): Promise<void> {
+      const chartElement =
+        this.querySelector<HTMLElement>(
+          "[data-chart]",
+        );
+
+      const detailsElement =
+        this.querySelector<HTMLElement>(
+          "[data-details]",
+        );
+
+      const detailsIconElement =
+        this.querySelector<HTMLImageElement>(
+          "[data-details-icon]",
+        );
+
+      const titleElement =
+        this.querySelector<HTMLElement>(
+          "[data-title]",
+        );
+
+      const tickerElement =
+        this.querySelector<HTMLElement>(
+          "[data-ticker]",
+        );
+
+      const metadataElement =
+        this.querySelector<HTMLElement>(
+          "[data-metadata]",
+        );
+
+      const assetKindElement =
+        this.querySelector<HTMLElement>(
+          "[data-asset-kind]",
+        );
+
+      const canonicalBlockchainElement =
+        this.querySelector<HTMLElement>(
+          "[data-canonical-blockchain]",
+        );
+
+      const ethereumBasedElement =
+        this.querySelector<HTMLElement>(
+          "[data-ethereum-based]",
+        );
+
+      const levelElement =
+        this.querySelector<HTMLElement>(
+          "[data-level]",
+        );
+
+      const consensusModelElement =
+        this.querySelector<HTMLElement>(
+          "[data-consensus-model]",
+        );
+
+      const ledgerModelElement =
+        this.querySelector<HTMLElement>(
+          "[data-ledger-model]",
+        );
+
+      const miningHashAlgorithmElement =
+        this.querySelector<HTMLElement>(
+          "[data-mining-hash-algorithm]",
+        );
+
+      const gasTokenElement =
+        this.querySelector<HTMLElement>(
+          "[data-gas-token]",
+        );
+
+      const tagsElement =
+        this.querySelector<HTMLElement>(
+          "[data-tags]",
+        );
+
+      const closeButton =
+        this.querySelector<HTMLButtonElement>(
+          "[data-close]",
+        );
+
+      if (
+        !chartElement ||
+        !detailsElement ||
+        !detailsIconElement ||
+        !titleElement ||
+        !tickerElement ||
+        !metadataElement ||
+        !assetKindElement ||
+        !canonicalBlockchainElement ||
+        !ethereumBasedElement ||
+        !levelElement ||
+        !consensusModelElement ||
+        !ledgerModelElement ||
+        !miningHashAlgorithmElement ||
+        !gasTokenElement ||
+        !tagsElement
+      ) {
+        return;
+      }
+
+      const setMetadataValue = (
+        valueElement: HTMLElement,
+        value: unknown,
+      ): boolean => {
+        const row =
+          valueElement.closest<HTMLElement>(
+            "[data-metadata-row]",
+          );
+
+        if (!row) {
+          return false;
+        }
+
+        const formatted =
+          formatExtraValue(value);
+
+        if (!formatted) {
+          valueElement.textContent = "";
+          row.hidden = true;
+
+          return false;
+        }
+
+        valueElement.textContent =
+          formatted;
+
+        row.hidden = false;
+
+        return true;
+      };
+
+      try {
+        const parsed: unknown =
+          JSON.parse(
+            this.dataset.points ??
+              "[]",
+          );
+
+        this.points =
+          Array.isArray(parsed)
+            ? parsed as ScatterPoint[]
+            : [];
+      } catch (error) {
+        console.error(
+          "Could not parse scatter plot points.",
+          error,
+        );
+
+        return;
+      }
+
+      const xLabel =
+        this.dataset.xLabel ?? "X";
+
+      const yLabel =
+        this.dataset.yLabel ?? "Y";
+
+      this.abortController =
+        new AbortController();
+
+      const initialData =
+        this.points.map((point) =>
+          createChartPoint(point),
+        );
+
+      this.chart = echarts.init(
+        chartElement,
+        null,
+        {
+          renderer: "svg",
+        },
+      );
+
+      this.chart.setOption({
+        animationDuration: 500,
+
+        grid: {
+          top: 30,
+          right: 30,
+          bottom: 75,
+          left: 65,
+          containLabel: true,
+        },
+
+        tooltip: {
+          trigger: "item",
+
+          formatter: (
+            parameters: {
+              dataIndex?: number;
+              value?: [
+                number,
+                number,
+              ];
+            },
+          ) => {
+            const dataIndex =
+              parameters.dataIndex;
+
+            if (
+              typeof dataIndex !==
+                "number" ||
+              !this.points[dataIndex]
+            ) {
+              return "";
+            }
+
+            const point =
+              this.points[dataIndex];
+
+            const name =
+              pointDisplayName(point);
+
+            const ticker =
+              pointTicker(point);
+
+            const title = ticker
+              ? `${name} (${ticker})`
+              : name;
+
+            const value =
+              parameters.value ??
+              [point.x, point.y];
+
+            return [
+              `<strong>${escapeHtml(title)}</strong>`,
+              `${escapeHtml(xLabel)}: ${escapeHtml(value[0])}`,
+              `${escapeHtml(yLabel)}: ${escapeHtml(value[1])}`,
+            ].join("<br>");
+          },
+        },
+
+        toolbox: {
+          right: 10,
+
+          feature: {
+            dataZoom: {},
+            restore: {},
+            saveAsImage: {},
+          },
+        },
+
+        xAxis: {
+          type: "value",
+          name: xLabel,
+          nameLocation: "middle",
+          nameGap: 35,
+          scale: true,
+        },
+
+        yAxis: {
+          type: "value",
+          name: yLabel,
+          nameLocation: "middle",
+          nameGap: 45,
+          scale: true,
+        },
+
+        dataZoom: [
+          {
+            type: "inside",
+            xAxisIndex: 0,
+          },
+          {
+            type: "inside",
+            yAxisIndex: 0,
+          },
+          {
+            type: "slider",
+            xAxisIndex: 0,
+            bottom: 15,
+          },
+        ],
+
+        series: [
+          {
+            id: "tokens",
+            type: "scatter",
+            data: initialData,
+
+            emphasis: {
+              focus: "self",
+              scale: 1.35,
+            },
+          },
+        ],
+      });
+
+      this.chart.on(
+        "click",
+        (parameters) => {
+          const event =
+            parameters as unknown as ScatterEvent;
+
+          if (
+            event.seriesType !==
+              "scatter" ||
+            typeof event.dataIndex !==
+              "number"
+          ) {
+            return;
+          }
+
+          const point =
+            this.points[
+              event.dataIndex
+            ];
+
+          if (!point) {
+            return;
+          }
+
+          const displayName =
+            pointDisplayName(point);
+
+          titleElement.textContent =
+            displayName;
+
+          const detailsIconUrl =
+            pointIconUrl(point);
+
+          if (detailsIconUrl) {
+            detailsIconElement.src =
+              absoluteUrl(
+                detailsIconUrl,
+              );
+
+            detailsIconElement.alt =
+              `${displayName} icon`;
+
+            detailsIconElement.hidden =
+              false;
+          } else {
+            detailsIconElement
+              .removeAttribute("src");
+
+            detailsIconElement.alt = "";
+            detailsIconElement.hidden =
+              true;
+          }
+
+          const ticker =
+            pointTicker(point);
+
+          if (ticker) {
+            tickerElement.textContent =
+              ticker;
+
+            tickerElement.hidden =
+              false;
+          } else {
+            tickerElement.textContent =
+              "";
+
+            tickerElement.hidden =
+              true;
+          }
+
+          const extra =
+            point.extra;
+
+          const hasMetadata = [
+            setMetadataValue(
+              assetKindElement,
+              extra?.asset_kind,
+            ),
+            setMetadataValue(
+              canonicalBlockchainElement,
+              extra?.canonical_blockchain,
+            ),
+            setMetadataValue(
+              ethereumBasedElement,
+              extra?.ethereum_based,
+            ),
+            setMetadataValue(
+              levelElement,
+              extra?.level,
+            ),
+            setMetadataValue(
+              consensusModelElement,
+              extra?.consensus_model,
+            ),
+            setMetadataValue(
+              ledgerModelElement,
+              extra?.ledger_model,
+            ),
+            setMetadataValue(
+              miningHashAlgorithmElement,
+              extra?.mining_hash_algorithm,
+            ),
+            setMetadataValue(
+              gasTokenElement,
+              extra?.gas_token,
+            ),
+          ].some(Boolean);
+
+          metadataElement.hidden =
+            !hasMetadata;
+
+          tagsElement.replaceChildren();
+
+          const categories =
+            pointCategories(point);
+
+          if (
+            categories.length === 0
+          ) {
+            const emptyMessage =
+              document.createElement(
+                "p",
+              );
+
+            emptyMessage.className =
+              "scatter-tags__empty";
+
+            emptyMessage.textContent =
+              "No categories available.";
+
+            tagsElement.append(
+              emptyMessage,
+            );
+          } else {
+            for (
+              const category
+              of categories
+            ) {
+              const target =
+                findCategoryTarget(
+                  category,
+                );
+
+              const categoryButton =
+                document.createElement(
+                  "button",
+                );
+
+              categoryButton.type =
+                "button";
+
+              categoryButton.className =
+                "scatter-tag";
+
+              categoryButton.textContent =
+                category;
+
+              if (!target) {
+                categoryButton.disabled =
+                  true;
+
+                categoryButton.title =
+                  `No definition found for "${category}".`;
+
+                categoryButton.classList.add(
+                  "scatter-tag--disabled",
+                );
+
+                tagsElement.append(
+                  categoryButton,
+                );
+
+                continue;
+              }
+
+              categoryButton.setAttribute(
+                "aria-label",
+                `Jump to the definition of ${category}`,
+              );
+
+              categoryButton.onclick =
+                () => {
+                  scrollBelowNavbar(
+                    target,
+                  );
+
+                  if (
+                    !target.hasAttribute(
+                      "tabindex",
+                    )
+                  ) {
+                    target.setAttribute(
+                      "tabindex",
+                      "-1",
+                    );
+                  }
+
+                  target.focus({
+                    preventScroll: true,
+                  });
+                };
+
+              tagsElement.append(
+                categoryButton,
+              );
+            }
+          }
+
+          detailsElement.hidden =
+            false;
+
+          requestAnimationFrame(
+            () => {
+              scrollBelowNavbar(
+                detailsElement,
+              );
+
+              detailsElement.focus({
+                preventScroll: true,
+              });
+            },
+          );
+        },
+      );
+
+      this.closeButton =
+        closeButton;
+
+      if (closeButton) {
+        closeButton.onclick =
+          () => {
+            detailsElement.hidden =
+              true;
+          };
+      }
+
+      this.resizeObserver =
+        new ResizeObserver(() => {
+          this.chart?.resize();
+        });
+
+      this.resizeObserver.observe(
+        chartElement,
+      );
+
+      const abortSignal =
+        this.abortController.signal;
+
+      const symbols =
+        await Promise.all(
+          this.points.map((point) =>
+            resolvePointSymbol(
+              point,
+              abortSignal,
+              this.objectUrls,
+            ),
+          ),
+        );
+
+      if (
+        !this.isConnected ||
+        !this.chart ||
+        abortSignal.aborted
+      ) {
+        return;
+      }
+
+      const resolvedData =
+        this.points.map(
+          (point, index) =>
+            createChartPoint(
+              point,
+              symbols[index] ??
+                "circle",
+            ),
+        );
+
+      this.chart.setOption({
+        series: [
+          {
+            id: "tokens",
+            type: "scatter",
+            data: resolvedData,
+
+            emphasis: {
+              focus: "self",
+              scale: 1.35,
+            },
+          },
+        ],
+      });
+    }
+
+    disconnectedCallback(): void {
+      this.abortController?.abort();
+      this.resizeObserver?.disconnect();
+
+      if (this.closeButton) {
+        this.closeButton.onclick =
+          null;
+      }
+
+      this.chart?.dispose();
+
+      for (
+        const objectUrl
+        of this.objectUrls
+      ) {
+        URL.revokeObjectURL(
+          objectUrl,
+        );
+      }
+
+      this.objectUrls = [];
+      this.points = [];
+      this.mounting = false;
+
+      this.abortController =
+        undefined;
+
+      this.resizeObserver =
+        undefined;
+
+      this.closeButton =
+        undefined;
+
+      this.chart =
+        undefined;
+    }
+  }
+
+  if (
+    !customElements.get(
+      "scatter-plot-widget",
+    )
+  ) {
+    customElements.define(
+      "scatter-plot-widget",
+      ScatterPlotWidget,
+    );
+  }
+</script>
+
+<style>
+  .scatter-widget {
+    display: block;
+    width: 100%;
+  }
+
+  .scatter-chart {
+    width: 100%;
+    min-height: 300px;
+  }
+
+  .scatter-details {
+    scroll-margin-top:
+      calc(
+        var(
+            --navbar-height,
+            4.5rem
+          ) +
+          1rem
+      );
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid
+      color-mix(
+        in srgb,
+        currentColor 20%,
+        transparent
+      );
+    border-radius: 0.75rem;
+  }
+
+  .scatter-details:focus {
+    outline: none;
+  }
+
+  .scatter-details[hidden] {
+    display: none;
+  }
+
+  .scatter-details__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content:
+      space-between;
+    gap: 1rem;
+  }
+
+  .scatter-details__header h3 {
+    margin: 0;
+  }
+
+  .scatter-details__identity {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: 0;
+  }
+
+  .scatter-details__icon {
+    display: block;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .scatter-details__icon[hidden] {
+    display: none;
+  }
+
+  .scatter-details__ticker {
+    margin: 0.2rem 0 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0.65;
+  }
+
+  .scatter-details__ticker[hidden] {
+    display: none;
+  }
+
+  .scatter-details__close {
+    padding: 0.25rem 0.5rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .scatter-metadata {
+    display: grid;
+    gap: 0.6rem;
+    margin: 1rem 0 0;
+  }
+
+  .scatter-metadata[hidden] {
+    display: none;
+  }
+
+  .scatter-metadata__row {
+    display: grid;
+    grid-template-columns:
+      minmax(8rem, 0.4fr)
+      minmax(0, 1fr);
+    gap: 1rem;
+    margin: 0;
+  }
+
+  .scatter-metadata__row[hidden] {
+    display: none;
+  }
+
+  .scatter-metadata dt {
+    font-weight: 600;
+    opacity: 0.7;
+  }
+
+  .scatter-metadata dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .scatter-categories__title {
+    margin: 1.1rem 0 0;
+    font-size: 0.9rem;
+  }
+
+  .scatter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+  }
+
+  :global(.scatter-tags__empty) {
+    margin: 0;
+    opacity: 0.7;
+  }
+
+  :global(.scatter-tag) {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid
+      transparent;
+    border-radius: 999px;
+    background:
+      color-mix(
+        in srgb,
+        currentColor 10%,
+        transparent
+      );
+    color: inherit;
+    font: inherit;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  :global(
+    .scatter-tag:not(:disabled):hover
+  ) {
+    background:
+      color-mix(
+        in srgb,
+        currentColor 18%,
+        transparent
+      );
+  }
+
+  :global(
+    .scatter-tag:focus-visible
+  ) {
+    border-color: currentColor;
+    outline: 2px solid
+      color-mix(
+        in srgb,
+        currentColor 35%,
+        transparent
+      );
+    outline-offset: 2px;
+  }
+
+  :global(.scatter-tag:disabled),
+  :global(
+    .scatter-tag--disabled
+  ) {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  @media (max-width: 32rem) {
+    .scatter-metadata__row {
+      grid-template-columns:
+        1fr;
+      gap: 0.15rem;
+    }
+  }
+</style>

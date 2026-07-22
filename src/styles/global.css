@@ -1,5 +1,6 @@
 :root {
   color-scheme: dark;
+  --navbar-height: 4.5rem;
   --bg: #070811;
   --bg-soft: #0f1222;
   --surface: rgba(255, 255, 255, 0.07);
@@ -28,6 +29,7 @@ html {
     var(--bg);
   color: var(--text);
   transition: background 0.8s ease;
+  scroll-padding-top: calc(var(--navbar-height) + 1rem);
 }
 
 html.light {
@@ -155,6 +157,21 @@ h1 {
 h2 { font-size: clamp(2rem, 5vw, 3.5rem); }
 
 h3 { font-size: 1.45rem; }
+
+table {
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  vertical-align: baseline;
+  /* border: 1px solid currentColor; */
+  padding: 0.25rem;
+}
+
+.small-text-table table {
+  font-size: 0.80rem;
+}
 
 .lede {
   max-width: 720px;

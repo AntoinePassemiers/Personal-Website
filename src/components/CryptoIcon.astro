@@ -1,0 +1,121 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type ImageProps = Omit<
+  HTMLAttributes<"img">,
+  "src" | "width" | "height" | "alt"
+>;
+
+type SourceProps =
+  | {
+      /**
+       * Repository icon filename without its extension.
+       * Example: "aave", "btc", "eth"
+       */
+      name: string;
+      url?: string;
+    }
+  | {
+      /**
+       * Optional name used for the default alt text.
+       */
+      name?: string;
+
+      /**
+       * Custom image URL.
+       *
+       * Supports PNG, WebP, SVG, and other browser-supported formats.
+       */
+      url: string;
+    };
+
+type Props = ImageProps &
+  SourceProps & {
+    /**
+     * Rendered width and height in pixels.
+     *
+     * @default 24
+     */
+    size?: number;
+
+    /**
+     * Crop the image into a circle.
+     *
+     * @default false
+     */
+    round?: boolean;
+
+    /**
+     * Alternative text.
+     *
+     * Pass an empty string when the icon is decorative.
+     */
+    alt?: string;
+  };
+
+const {
+  name,
+  url,
+  size = 24,
+  round = false,
+  alt,
+  loading = "lazy",
+  decoding = "async",
+  class: className,
+  ...attributes
+} = Astro.props as Props;
+
+const iconName = name
+  ?.trim()
+  .toLowerCase()
+  .replace(/\.(png|webp|svg)$/i, "");
+
+const customUrl = url?.trim();
+
+if (!customUrl && !iconName) {
+  throw new Error(
+    '<CryptoIcon> requires either a "name" or "url" property.',
+  );
+}
+
+const src =
+  customUrl ??
+  `https://raw.githubusercontent.com/` +
+    `spothq/cryptocurrency-icons/master/128/color/` +
+    `${encodeURIComponent(iconName!)}.png`;
+
+const alternativeText =
+  alt ??
+  (iconName
+    ? `${iconName.toUpperCase()} cryptocurrency icon`
+    : "Cryptocurrency icon");
+---
+
+<img
+  src={src}
+  width={size}
+  height={size}
+  alt={alternativeText}
+  loading={loading}
+  decoding={decoding}
+  class:list={[
+    "crypto-icon",
+    { "crypto-icon--round": round },
+    className,
+  ]}
+  {...attributes}
+/>
+
+<style>
+  .crypto-icon {
+    display: inline-block;
+    flex: none;
+    object-fit: contain;
+    vertical-align: middle;
+  }
+
+  .crypto-icon--round {
+    border-radius: 50%;
+    object-fit: cover;
+  }
+</style>

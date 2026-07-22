@@ -1,0 +1,325 @@
+---
+layout: ../../../layouts/PostLayout.astro
+title: A quick and comprehensive introduction to Ethereum
+description: Ethereum - A cryptocurrency, but not only
+date: 2026-07-21
+author: Antoine Passemiers
+lang: en
+tag: Crypto
+difficulty: 3
+---
+
+import CryptoIcon from "../../../components/CryptoIcon.astro";
+import CryptoScatterPlot from "../../../components/CryptoScatterPlot.astro";
+import tokenData from "data/coin-data.json";
+
+<CryptoScatterPlot
+  points={tokenData}
+  xLabel="First principal component"
+  yLabel="Second principal component"
+  height={500}
+/>
+
+
+<div data-category="Meme">TODO</div>
+
+
+| Abbrevation/acronym | Full spelling | Meaning |
+| :------------------ | :------------ | :------ |
+| tx | Transaction | TODO |
+| zk | Zero-knowledge | TODO |
+| L1 | Layer 1 | TODO |
+| L2 | Layer 2 | TODO |
+
+Nice references:
+- https://public.bnbstatic.com/static/files/research/industry-map-sep25.pdf
+- https://www.binance.com/en/academy/glossary
+
+## Tokens
+
+- `library` keyword to make libraries stateless -> prevent vulnerabilities
+- ERC-20: the standard for fungible tokens. Extensions: burning system, voting system
+- Tokens sent to contract addresses which do not have ERC-20 capabilities are lost forever. Instead, the contract should have the ERC20 instance should be set in the constructor.
+- The "approve" ERC20 workflow allows, for example, to allow an other contract (e.g. a faucet) to transfer tokens, even when the addresses of the token contract and the faucet contract are different.
+- In ERC20, "transactions" only changes the state of the token contract, not the state of the recipient address -> It can be tricky for wallets to keep track of token balances. Anyway, one does not want to track all balances because they are a lot of spam/junk tokens.
+- ERC-1967 proxy to move the contract's logic to another address. Allows changing the code or fixing bugs over time: https://eips.ethereum.org/EIPS/eip-1967. Storage slot for the implementation contract address is hardcoded (derived from a hash) to prevent any collision with other variables in the code.
+- ERC-7201: namespaced storage layouts to prevent collisions when migrating between delegate contracts.
+- ERC-2612: addition to ERC-20, allows token transfers without interacting with the blockchain (therefore avoiding gas fees). Only creates the signature, by signing off-chain messages. The actual transaction is performed by someone else. Third parties pay for the gas fees in exchange for reimbursement in ERC-20 tokens.
+- ERC-223: prevents inadvertently sending tokens to contracts. It uses the `extcodesize` function to distinguish between EOAs and contracts. It gives the bytecode size, which should be 0 for EOAs. This assumption is no longer true nowadays.
+- ERC-777: compatible with ERC-20. They introduce "hooks", functions called during the token transfer. The sender's hook executes, then the transfer occurs, then the receiver's hook executes. Transactions are atomic, contrary to ERC-20 where they are made in 2 stages. It also introduces an operator mechanism: operators are authorized addresses which can send and burn tokens on their behalf. Introduces severe risks of reentrancy or DoS attacks.
+- ERC-721: the standard for non-fungible tokens (NFT). Builds on ERC-165. Metadata (name, description, image)is decentralized by mapping the token ID to a URI (uniform resource identifier), typically an IPFS (Inter-Planetary File System) for decentralized storage. Extension: system of royalty payments.
+- ERC-1155: Multitoken standard. Builds on ERC-165. Can manage both fungible (e.g., gold in a game) and non-fungible (e.g., unique swords in a game). Each token type has its own unique ID. It enables batch operations, therefore reducing gas costs. Safety mechanism to prevent locking tokens: the receiver should implement the IERC1155Receiver interface. Extensions: burnable tokens, pausable contracts.
+- ERC-1820: greater flexibility for decentralized systems.
+- Standards are meant to encourage interoperability between contracts. The standards are meant to be descriptive rather than prescriptive
+- EIP-165 defines a method for contracts to announce the interfaces they implement. Inherits from a base class, such as OpenZeppelin's ERC-165, and overrides the `supportsInterface` method.
+
+Oracles: everything should be deterministic on the blockchain (otherwise consensus would be impossible) -> network nodes could only include transactions that give them an advantage (e.g., in a gambling game) -> we need external info (which can be unverified sources) -> oracles solve that issue.
+Oracles bridge the gap between the off-chain world and the contracts. Oracles provide random numbers, the price of gold, the results of football games, damage verification for insurance contracts, etc.
+- Immediate-read oracles (oracle contract): data can be accessed with 0 gas cost by direct lookup in the oracle contract storage.
+- Publish-subscribe oracles (oracle contract + off-chain daemon): when data is expected to change. Similar to RSS feeds and WebSub. Implemented using an off-chain daemon. Examples: keeping track of interest rates.
+- Request-response oracles (oracle contract + off-chain daemon + off-chain data fetcher): when data is large to be stored in smart contracts, and when users only need to get a small portion of it.
+Chainlink VRF (verifiable random function): the oracle uses its private key to generate a random number off-chain, and then publishes it with the corresponding proof on-chain. The public key can be used to verify that the "random" number has not been manipulated.
+Computation oracles can be used to run arbitrary functions.
+ZK coprocessors (Lagrange and Brevis): enable running expensive computations off-chain while ensuring on-chain verification.
+Decentralized oracles with on-chain data aggregation systems. Example: Chainlink protocol, SchellingCoin protocol (rewards reporters that report values close to the median).
+
+Cross-chain messaging protocols:
+- LayerZero: The LayerZero endpoint (a smart contract) in chain A sends the data to an off-chain relayer and an off-chain oracle, which send the data to a LayerZero endpoint in chain B.
+- Wormhole: enable transfers between Solana, Ethereum, Binance Smart Chain, Hyperliquid and Avalanche. Uses a network of off-chain guardians to improve security.
+- CCIP (Chainlink's Interoperability Protocol): uses decentralized oracles. Locks/burns tokens on the source chain, and unlocks/mints tokens on the destination chain.
+- CCTP (Chainlink's Transfer Protocol): bridges USDC between different chains.
+- Cosmos: implements the Inter-Blockchain Communication (IBC) protocol.
+- Polkadot: secures parachains via a shared set of validators in the Relay Chain
+
+## Decentralized applications (DApps)
+
+DApps:
+Decentralized backend = blockchain (only to store important info)
+- Blockchain indexer: tool that lets developers query and analyze data stored on the blockchain in a fast and efficient way. Database-like structure. Example: IPFS
+- Store a Merkle tree off-chain, and store the tree root in the contract.
+
+```bash
+npm install -g corepack
+yarn
+npx create-eth@latest -e erc-20
+# Choose hardhat as solidity framework
+```
+
+Start a local blockchain:
+```bash
+yarn chain
+```
+Create a new terminal.
+
+Deploy on the blockchain:
+```bash
+yarn deploy
+```
+
+Starting the frontend:
+```bash
+yarn start
+```
+
+Burner wallet: an auto-generated address whose private key is temporarily saved in your web browser. Useful for development.
+
+
+#### Deploy to Ethereum
+```bash
+yarn generate  # Generate a deployer account
+# Choose a password (optional)
+```
+Next The account needs to be funded. To deploy:
+```bash
+yarn deploy --network mainnet
+```
+In `scaffold.config.ts`, replace `targetNetworks: [chains.hardhat],` by `targetNetworks: [chains.mainnet],`
+
+Use Etherscan to verify the contracts:
+```bash
+yarn verify --network mainnet
+```
+
+#### Publish the DApp (centralized solution)
+
+Create a Vercel account.
+
+Deploy to Vercel:
+```bash
+$ yarn vercel:yolo
+```
+
+#### Publish the DApp (decentralized solution)
+
+`Eth.limo` acts as a reverse proxy for ENS names and IPFS contents.
+Domain names are of the `*.eth.limo` form.
+Only static files are currently supported.
+Requirements: buy an ENS and link it to the IPFS contenthash of your frontend.
+
+Deploy to IPFS:
+```bash
+yarn ipfs
+```
+
+Build your own IPFS node: https://www.bgipfs.com/
+
+## Decentralized Finance (DeFi)
+
+Fiat currencies (+ barries to entry) -> TradFi
+Cryptocurrencies -> DeFi
+
+<CryptoIcon name="usdc" /> USDC: a token whose value is pegged to one dollar, and natively issued on the Arbitrum chain.
+USDC.e: a token transferred from another chain to Arbitrum (USDC risk + risks related to the bridging process).
+
+Centralized exchange (CEX): maintains accounts and controls the trading system. Examples: Binance, Coinbase, Kraken, OKX, Gemini, Bitstamp.
+Decentralized exchange (DEX): platform that uses smart contracts to manage transactions automatically. Examples: Uniswap, Curve, PancakeSwap, dYdX, SushiSwap, Balancer.
+
+Order book model: difficult to use on-chain due to the blockchain speed.
+Automated market maker (AMM) model: prices are determined by the ratio of tokens in the liquidity pools.
+$$
+\Delta y = \frac{y \Delta x}{x + \Delta x},
+$$
+where $x$ and $y$ are the pool sizes, while $\Delta x$ and $\Delta y$ are the input and output amounts, respectively.
+
+<details open>
+<summary>Mathematical details</summary>
+
+If the trader deposits $\Delta x$ of token X and receives $\Delta y$ of token Y in exchange, the product of the two quantities should remain constant:
+$$
+\begin{aligned}
+& & xy & = (x + \Delta x) (y - \Delta y) = k \\
+& \iff \quad & \Delta y & = y - \frac{xy}{x + \Delta x} \\
+& & & = \frac{yx + y \Delta x - xy}{x + \Delta x} \\
+& & & = \frac{y \Delta x}{x + \Delta x}, \\
+\end{aligned}
+$$
+for some constant $k$.
+</details>
+
+Uniswap uses the AMM model. xy = constant, where x and y represent the quantities of the two tokens in the pool. -> Price = ratio of quantities.
+If prices were constant instead, arbitrageurs would have an incentive to trade against the pool until one side of the reserves is exhausted (which depends on which one is overpriced/underpriced). Same problem with linear prices. -> AMM model and its hyperbolic curve are more suitable (the asymptotic behavior makes it secure: slippage discourages traders from depleting the pool).
+
+Impermanent loss: buy -> sell -> loss due to price difference
+
+Lending market: loan must be overcollaterallized (due to risks of default). Interest rates are determined by the market (borrowers/lenders). If the value of the collateral falls below a certain threshold, the platform's smart contracts initiate a liquidation process. Oracles are needed for securing lending markets (to prevent flash-loan attacks from people manipulating prices on a DEX).
+
+Flash loans
+
+Combining a lending market with a DEX enables more complex financial instruments, such as shorting.
+
+Using the lending market instead of your own money directly can be untaxable in many jurisdictions.
+
+Stablecoins
+- Fiat-collateralized stablecoins: backed by reserves of fiat currencies. Examples: <CryptoIcon name="usdt" /> USDT, <CryptoIcon name="usdc" /> USDC
+- Cryptocollateralized stablecoins: backed by other currencies. Example: <CryptoIcon name="dai" /> DAI (Ethereum overcollateralization stabilizes DAI)
+- Algorithmic stablecoins: price is adjusted automatically based on market demand. Example: <CryptoIcon name="dai" url="https://altcoinsbox.com/wp-content/uploads/2023/03/terra-logo.webp" /> TerraUSD
+
+Liquid staking: mechanism that allows users to stake their cryptocurrency assets in a PoS network while retaining the liquidity of those assets. PoS network: uses Proof of Stake to decide who gets to validate transactions and create new blocks. Slashing: when validators break the rules and lose part of their stake.
+Example: Lido is a protocol that lets people stake ETH while emitting a transferable (derivative) token representing the stacked position, called stETH. How it works: (i) You deposit ETH into Lido, which triggers smart contracts. (ii) Lido mixes it with deposits from other users into a large pool. (iii) ETH is deposited to nodes running Ethereum validators. (iv) Those validators earn staking rewards or incur penalties. (v) You receive stETH, representing your portion of the pooled ETH, including accumulated rewards and penalties.
+stETH -> Lido's stacking protocol
+<CryptoIcon name="ldo" url="https://assets.kraken.com/marketing/web/icons-uni-webp/s_ldo.webp" /> LDO -> Lido's governance protocol: protocol parameters, treasury spendings, smart contract upgrades, etc. -> Impacts stETH indirectly.
+
+In Proof of Work, miners spend electricity and computing power to secure the network.
+In Proof of Stake, validators put cryptocurrency at financial risk to secure it.
+Ethereum moved from PoW to PoS in September 2022. The `difficulty` field is still present in block headers for backward compatibility, and is set to 0. Security now comes from the risk of penalities, not the computational barrier.
+
+RWAs (real-world assets): stocks, bonds, fractions of real estate, fine art, etc. Rely on custodians -> not really decentralized.
+
+Bridges = specialized protocols that facilitate the transfer of assets/data between different blockchains.
+- Wrapped-token bridges (lock and mint)
+- Mint and burn
+- Liquidity bridges: no new tokens are minted; the bridge already holds tokens on both chains.
+
+---
+
+EVM: stack-based architecture (max 1024 words). Word size = 256 bits. "Single-threaded". Memory = volatile, byte-addressable data structure. Storage = persistent key-value data structure. Calldata = immutable data structure that always contains the bytes sent as input to the next call frame
+EVM is a quasi-Turing-complete state machine: "quasi" because all execution processes are limited to a finite number of computational steps by the amount of gas available.
+
+Examples of virtual machines:
+JVM -> Java, Scala
+.NET -> C#
+EVM -> Solidity
+Solana VM, Wasm VM, Cairo VM, Move VM, etc.
+
+Sandboxed copy of the Ethereum world state -> execution -> if success, the real-world state is updated to match the sandboxed version.
+Sandboxed copy occurs at every recursive call.
+All Ethereum nodes have to compute and maintain the last state by reexecuting all the transactions it contains.
+Not great -> Ethereum will be made stateless in the future. It requires changing: Enshrined proposer-builder separation (ePBS), and Verkle trees.
+
+Merkle tree: hash tree used to efficiently prove that any chunk of the database has not been manipulated.
+The hash of each parent is obtained by hashing the concatenation of the hashes of its children.
+With such data structure, it is cheaper to provide a proof regarding the balance of an address, the result of a transaction, etc.
+Contrary to Bitcoin, the Ethereum state changes constantly, therefore Merkle trees need some adjustements -> modified Merkle-Patricia tries.
+Merkle-Patricia tries: each node has 16 children. To retrieve a value, the key is hex-encoded, and each hex value is used to index children, one level at a time.
+Used to store: state, transactions, receipts (transaction results), storage (smart contract data).
+
+Deployment bytecode = contract initialization + runtime bytecode. Obtained by running `solc --bin contract.sol`
+Runtime bytecode. Obtained by running `solc --bin-runtime contract.sol`
+CREATE instruction: the contract address depends only on the state of the sender.
+CREATE2 instruction: the contract address now also depends on the bytecode hash.
+
+EVM bytecode disassemblers: Ethersplay, Heimdall
+
+---
+
+https://speedrunethereum.com/
+https://buidlguidl.com
+
+Vitalik Buterin's blog: https://vitalik.eth.limo
+
+TEE = trusted execution environments.
+
+---
+
+Protocol Labs -> IPFS and Filecoin
+
+---
+
+To check:
+- Gas (is Remix actually good at estimating gas consumption?)
+- Damage verification for insurance contracts
+
+---
+
+Install foundry, as explained here: https://www.getfoundry.sh/introduction/installation
+```bash
+curl -L https://foundry.paradigm.xyz | bash
+source ~/.bashrc
+foundryup
+forge install OpenZeppelin/openzeppelin-contracts
+```
+
+Create a project:
+```bash
+forge init
+```
+
+Compile the project:
+```bash
+forge build
+```
+
+Run Anvil:
+```bash
+anvil
+```
+
+Deploy locally with Anvil:
+```bash
+forge script script/ContractDeploy.s.sol --broadcast --rpc-url "http://127.0.0.1:8545" --private-key <DEPLOYER_PRIVATE_KEY>
+```
+
+
+## Consensus models
+
+ASERT = difficulty adjustment algorithm
+DigiShield
+
+DPoS = Delegated Proof of Stake. In TRON, 1 stacked TRX = 1 "TRON power" = 1 vote. Vote for candidates -> 27 Super Representatives are elected -> they produce blocks -> voters and Super Representatives receive TRX rewards.
+PoSA = Proof of Stacked Authority: combines DPoS and proof of authority
+
+<details open>
+<summary>Cryptocurrency comparison</summary>
+<div className="small-text-table">
+| Icon | Ticker | Full name | Relationship to BTC and ETH | Native? | Blockchain | Gas token | Ledger model | Consensus | Peculiarities |
+| :--- | :----- | :-------- | :-------------------------- | :------ | :--------- | :-------- | :----------- | :-------- | :------------ |
+| <CryptoIcon name="eth" /> | ETH | Ether | ETH | Native coin | Own | ETH | Account-based global state | PoS (since 2022) | Quasi-Turing Complete, arbitrary smart contracts |
+| <CryptoIcon name="btc" /> | BTC | Bitcoin | BTC | Native coin | Own | BTC | UTXO | PoW | Programmable spending conditions (more constrained than Ethereum) |
+| <CryptoIcon name="bch" /> | BCH | Bitcoin Cash | Hard fork of BTC | Native coin | Own | BCH | UTXO | PoW (ASERT) | Increased transaction capacity, zero-confirmation transactions |
+| <CryptoIcon name="xrp" /> | XRP | XRP | - | Native coin | XRP Ledger | Account-based shared ledger | XRP | XRPL Consensus Protocol (voting) | Fast payments |
+| <CryptoIcon name="awe" url="https://s3.coinmarketcap.com/static-gravity/image/641cb26436b14a98a538708c9f7c8a82.jpg" round="true" /> | AWE | AWE | Base Network (Ethereum L2) | ERC-20 token (AI ecosystem utility and governance) | - | ETH | EVM account-based model | - | Autonomous Worlds Engine, multi-agent AI |
+| <CryptoIcon name="ltc" /> | LTC | Litecoin | - | Native coin | Litecoin | LTC | UTXO | PoW | Faster, lighter version of Bitcoin |
+| <CryptoIcon name="trx" /> | TRX | TRON | EVM-compatible | Native coin | TRON | TRX | Account-based global state | DPoS | TRON Virtual Machine, Solidity/EVM-compatible |
+| <CryptoIcon name="币安人生" url="https://s2.coinmarketcap.com/static/img/coins/128x128/38590.png" round="true" /> | 币安人生 | Binance Life | EVM-compatible | BEP-20 token | BNB Smart Chain | BNB | Account-based ledger | PoSA | Four.meme community memecoin |
+| <CryptoIcon name="doge" /> | DOGE | Dogecoin | - | Native coin | Dogecoin | DOGE | UTXO | PoW (DigiShield) | Memecoin, payment coin, no maximum supply |
+| <CryptoIcon name="floki" url="https://s2.coinmarketcap.com/static/img/coins/128x128/10804.png" /> | FLOKI | Floki | ERC-20 token | ERC-20 token (Ethereum), BEP-20 token (BNB Smart Chain) | Ethereum | ETH | Account-based EVM global state | PoS | Memecoin, application-level utility |
+| | | | - | - | BNB Smart Chain | BNB | - | PoSA | - |
+| <CryptoIcon name="giggle" url="https://s2.coinmarketcap.com/static/img/coins/128x128/38470.png" round="true" /> | GIGGLE | Giggle Fund | EVM-compatible | BEP-20 token | BNB Smart Chain | BNB | Account-based EVM global state | PoSA | Charity-themed memecoin, philanthropic tokenomics |
+| <CryptoIcon name="cake" url="https://s2.coinmarketcap.com/static/img/coins/128x128/7186.png" round="true" /> | CAKE | PancakeSwap | Exists on Ethereum | BEP-20 token | BNB Smart Chain | BNB | Account-based EVM global state | PoSA | Utility, incentive and governance token of PancakeSwap (a DEX). Exists on many networks. |
+| <CryptoIcon name="trump" url="https://s2.coinmarketcap.com/static/img/coins/128x128/35336.png" round="true" /> | TRUMP | Official Trump | - | Solana SPL token | Solana | SOL | Account-based state model | - | Political memecoin |
+</div>
+</details>
+
+## Law enforcement
+
+Tornado Cash, Samourai Wallet
