@@ -9,6 +9,7 @@ tag: Crypto
 difficulty: 3
 ---
 
+import ResponsiveImage from '../../../components/ResponsiveImage.astro';
 import CryptoIcon from "../../../components/CryptoIcon.astro";
 import CryptoScatterPlot from "../../../components/CryptoScatterPlot.astro";
 import tokenData from "data/coin-data.json";
@@ -21,7 +22,152 @@ import tokenData from "data/coin-data.json";
 />
 
 
-<div data-category="Meme">TODO</div>
+<lex data-category="Meme">TODO</lex>
+
+## Consensus mechanisms
+
+- <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pow/" target="_blank" rel="noopener noreferrer">Proof of Work (PoW)</a>
+- <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pos/" target="_blank" rel="noopener noreferrer">Proof of Stake (PoS)</a>
+- <a href="https://ethereum.org/developers/docs/consensus-mechanisms/poa/" target="_blank" rel="noopener noreferrer">Proof of Authority (PoA)</a>
+
+## Ledger models
+
+UTXO model is thought to be more privacy-preserving that account-based models. In UTXO models, users are more difficult to trace because of one-time addresses (address A -> receiver address B + new change addres A').
+
+## Gas and fees
+
+Roles of gas in Ethereum: reduce the volatility of the price of ether, reward the validators for their work, prevent DoS attacks, and prevent infinite loops.
+
+Validator fee = gas cost multiplied by the gas price
+Refunded ether = remaining gas multiplied by the gas price
+
+Gas target: how much gas should be consumed on average per block.
+Determined through validators voting. Gas limit = 2 x gas target. Gas target is set to a reasonable value to avoid centralization (due to the computational workload).
+
+From the Ethereum's "Yellow Paper"[^2]:
+
+| Gas fee | Instructions |
+| :------ | :----------- |
+| 0 | STOP, RETURN, REVERT |
+| 1 | JUMPDEST |
+| 2 | ADDRESS, ORIGIN, CALLER, CALLVALUE, CALLDATASIZE, CODESIZE, GASPRICE, COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, RETURNDATASIZE, POP, PC, MSIZE, GAS, BASEFEE, PUSH0 |
+| 3 | ADD, SUB, NOT, LT, GT, SLT, SGT, EQ, ISZERO, AND, OR, XOR, BYTE, SHL, SHR, SAR, CALLDATALOAD, MLOAD, MSTORE, MSTORE8, PUSH1, ..., PUSH32, DUP*, SWAP* |
+| 5 | MUL, DIV, SDIV, MOD, SMOD, SIGNEXTEND, SELFBALANCE |
+| 8 | ADDMOD, MULMOD, JUMP |
+| 10 | JUMPI |
+| 20 | BLOCKHASH |
+| 10+50n | EXP (n = number of bytes in the exponent) |
+| 30+6n | KECCAK256 (n = number of words in the input data) |
+| 21000 | (Paid for every transaction) |
+| 32000 | CREATE |
+
+## Zero-knowledge proofs
+
+Motivation: Verify the vality of a statement without performing all the computations required to get to the original statement. This may be useful to improve the EVM state transition function: only a few nodes execute the transactions, and then provide the proofs to all other nodes -> "Centralization"
+
+Three principles:
+- Completeness: a honest prover with a valid solution can produce an acceptable proof.
+- Soundness: a prover who does not have a valid solution should not be able to convince a verifier.
+- Zero knowledge: the proof reveals nothing about the solution except the fact that a valid solution exists.
+
+The witness = the secret information that proves the statement is trusted.
+
+Interactive and simple protocol:
+Requires decomposing the validity of the solution into a set of local constraints in such a way that if all local constraints are satified, the verifier knows that the prover knows the solution. In each round, the prover proves to the verifier that one local constraint is satisfied (the prover does not know which one upfront).
+Each round can be summarized as follows:
+- The prover injects randomness into the solution, obtaining a temporary, modified solution. Randomization should be uncorrelated fromone round to the other to prevent the verifier from reconstructing the solution.
+- The prover generates a commitment and sends it to the verifier. For example, by constructing a Merkle tree from the modified solution (with random salts), and sending the Merkle root to the verifier.
+- The verifier sends a random challenge (the query) to check that a one local constraint is satisfied. Because the query is random and because of the commitment, the prover can not invent a solution satisfying the constraint without being caught.
+- The prover sends a response to the challenge (a proof), consisting of the small part of the modified solution needed to verify the local constraint + their salts + the Merkle verification path.
+- The verifier checks the validity of the proof.
+The process repeated until statistical significance.
+
+Detailed example for the partitioning problem: [https://www.shirpeled.com/2018/09/a-hands-on-tutorial-for-zero-knowledge.html](https://www.shirpeled.com/2018/09/a-hands-on-tutorial-for-zero-knowledge.html)
+
+Fiat-Shamir heuristic: protocol that can turn an interactive ZK proof system into a noninteractive one.
+Only two rounds:
+- The prover generates a `commitment`.
+- The prover computes `challenge = hash(commitment || public_inputs)`.
+- The prover computes a response to the `challenge` (`proof`).
+- The prover generates a `new_commitment`.
+- The prover computes `new_challenge = hash(new_commitment || proof || commitment || public_inputs)`
+- The prover computes a response to the `new_challenge` (a `new_proof`).
+- The prover repeats the logic as many times as needed for statistical significance.
+- The prover sends the commitments, challenges and responses to the verifier.
+- The verifier checks everything.
+
+These approaches only work for specific problems that can be decomposed in a particular way (e.g., the well-known partitioning problem).
+
+#### SNARK (succinct noninteractive arguments of knowledge)
+
+Nice explanation: [https://ebuchman.github.io/pdf/snarks.pdf](https://ebuchman.github.io/pdf/snarks.pdf)
+
+Relies on a trusted setup based on multiparty computation: many parties generate a different secret (called "toxic waste"), compute the proving and verification keys, and delete their initial secrets. Only one party needs to actually deletes their toxic waste for the protocol to work.
+
+Circuit = a way to encode the computions into a manageable form.
+
+#### STARK (scalable transparent argument of knowledge)
+
+Trusted setup is no longer needed.
+
+### zk-VM (zk Virtual Machines)
+
+Example: SP1, RISC Zero
+
+### Tornado Cash
+
+- Deposit:
+  - The depositor generates the random 31-bytes nullifier $n$, the random 31-bytes secrets $s$, and computes the commitment `C = hash(n, s)`, using the Perderson hash function (Baby Jubjub elliptic-curve point).
+  - The depositor sends $C$ to the smart contract, as well as the funds.
+  - The smart contract inserts $C$ into its Merkle tree, and updates the root $R$. It also keeps track of the history of recent Merkle roots, to prevent invalidating upcoming proofs whenevernew deposits arrive. The Merkle tree is binary, has a depth of 20 and uses a MiMC sponge for hashing. The Merkle tree structure will be needed to efficiently prove that the commitment derived from the secret note is one of the commitments previously deposited into this pool.
+- Withdrawal:
+  - The client computes the nullifier `N = hash(n)` and makes it public.
+  - The zk proof consists in proving that the client knows a $(n, s)$ couple that generated a leaf in the Merkle tree.
+  - The zk proof has the following public inputs: $(R, N, B, L, f)$, where $B$ is the recipient address, $L$ the relayer and $f$ the relayer fee.
+  - The zk private witness is made of: $(n, s, E, D)$, where $E$ is the correct Merkle path, and $D$ is the corresponding binary vector indicating how to select children during tree traversal. while $E$ and $D$ can be inferred from $C$ (since the tree is public), a malicious observer would not be able to figure out which $C$ the prover used upon deposit. $E$ and $D$ must stay private, otherwise the prover can be re-identified (i.e., matched with a depositor). Indeed, the depositor is linked to $C$, which can be recovered from $E$ or $D$.
+  - The client generates a Groth16 proof. The proof established:
+  $$
+  \begin{aligned}
+  & \exists n, s, E, D: \\
+  C & = \text{hash}(n ∥ s) \\
+  R & = \text{MerkleRoot}(C, E, D) \\
+  N & = \text{hash}(n) \\
+  \end{aligned}
+  $$
+  - The client sends the proof to a relayer off-chain, which will take care of paying the gas upon sending the proof to the tumbler's smart contract. This is useful because the withdrawal address is typically brand new with 0 funds.
+
+<ResponsiveImage
+  folder="/images/crypto"
+  filename="tornado-cash-explanation.svg"
+  alt="Tornado Cash event-trace diagram"
+/>
+
+### Other mixers
+
+Custodial (traditional) Bitcoin mixers have faced substantial law enforcement:
+- ChipMixer, taken down in 2023.
+- Helix, TODO
+- Samourai Wallet, TODO
+
+Non-custodial system for Bitcoin: CoinJoin. Each transaction is validly signed by every participant.
+
+## Law enforcement
+
+https://arxiv.org/abs/2005.14051
+
+Binance, Changpeng Zhao
+
+## Scalability
+
+Scalability trilemma: improving one of decentralization, security or scalability degrades the others.
+Example: improving speed -> larger blocks -> only large servers can handle them -> centralization (as in Solana)
+
+High gas fees during peak times (network congestion).
+Solutions:
+- L2 solutions
+- EIP-4844 (proto-danksharding)
+
+---
 
 
 | Abbrevation/acronym | Full spelling | Meaning |
@@ -34,6 +180,7 @@ import tokenData from "data/coin-data.json";
 Nice references:
 - https://public.bnbstatic.com/static/files/research/industry-map-sep25.pdf
 - https://www.binance.com/en/academy/glossary
+- Ethereum's "Yellow Paper": https://ethereum.github.io/yellowpaper/paper.pdf
 
 ## Tokens
 
@@ -155,13 +302,13 @@ Centralized exchange (CEX): maintains accounts and controls the trading system. 
 Decentralized exchange (DEX): platform that uses smart contracts to manage transactions automatically. Examples: Uniswap, Curve, PancakeSwap, dYdX, SushiSwap, Balancer.
 
 Order book model: difficult to use on-chain due to the blockchain speed.
-Automated market maker (AMM) model: prices are determined by the ratio of tokens in the liquidity pools.
+<lex data-category="Automated Market Maker (AMM)">Automated market maker (AMM) model</lex>: prices are determined by the ratio of tokens in the liquidity pools.
 $$
 \Delta y = \frac{y \Delta x}{x + \Delta x},
 $$
 where $x$ and $y$ are the pool sizes, while $\Delta x$ and $\Delta y$ are the input and output amounts, respectively.
 
-<details open>
+<details>
 <summary>Mathematical details</summary>
 
 If the trader deposits $\Delta x$ of token X and receives $\Delta y$ of token Y in exchange, the product of the two quantities should remain constant:
@@ -221,6 +368,8 @@ JVM -> Java, Scala
 EVM -> Solidity
 Solana VM, Wasm VM, Cairo VM, Move VM, etc.
 
+EVM implementations: Go-ethereum EVM (Go), Execution-spec EVM (Python), Revm, Evmone (C++), Besu EVM (Java), Nethermind EVM (C#)
+
 Sandboxed copy of the Ethereum world state -> execution -> if success, the real-world state is updated to match the sandboxed version.
 Sandboxed copy occurs at every recursive call.
 All Ethereum nodes have to compute and maintain the last state by reexecuting all the transactions it contains.
@@ -237,6 +386,12 @@ Deployment bytecode = contract initialization + runtime bytecode. Obtained by ru
 Runtime bytecode. Obtained by running `solc --bin-runtime contract.sol`
 CREATE instruction: the contract address depends only on the state of the sender.
 CREATE2 instruction: the contract address now also depends on the bytecode hash.
+
+
+- No difference between code and data: everything is just bytes. The distinction appears at runtime. No contract validation at deployment time (non-existing opcodes are not detected -> only at runtime). Introducing a new feature may be a problem if a contract's logic relies on the non-existence of a particular opcode.
+- JUMDEST validation: 0x5b represents the JUMPDEST opcode. When using JUMP or JUMPI, the target destination should be a JUMPDEST. However, 0x5b could also be part of push data -> Runtime analysis for accurate validation -> costly -> a map is created to avoid re-making the analysis everytime (each 0x5b is marked as valid or invalid).
+- "Stack too deep" error: The EVM can rapidly access only the top 16 items of the stack. The addition "a+b+c+d+e+f+g+h+i" does not compile in Solidity because it requires creating 8 intermediate results -> 9+8 > 16.
+EOF (Ethereum Object Format) solves all these issues. It isolates the stack for each function call, introducing the CALLF, RETF and JUMPF opcodes, and a return stack (separate from the original operand stack).
 
 EVM bytecode disassemblers: Ethersplay, Heimdall
 
@@ -298,28 +453,5 @@ DigiShield
 DPoS = Delegated Proof of Stake. In TRON, 1 stacked TRX = 1 "TRON power" = 1 vote. Vote for candidates -> 27 Super Representatives are elected -> they produce blocks -> voters and Super Representatives receive TRX rewards.
 PoSA = Proof of Stacked Authority: combines DPoS and proof of authority
 
-<details open>
-<summary>Cryptocurrency comparison</summary>
-<div className="small-text-table">
-| Icon | Ticker | Full name | Relationship to BTC and ETH | Native? | Blockchain | Gas token | Ledger model | Consensus | Peculiarities |
-| :--- | :----- | :-------- | :-------------------------- | :------ | :--------- | :-------- | :----------- | :-------- | :------------ |
-| <CryptoIcon name="eth" /> | ETH | Ether | ETH | Native coin | Own | ETH | Account-based global state | PoS (since 2022) | Quasi-Turing Complete, arbitrary smart contracts |
-| <CryptoIcon name="btc" /> | BTC | Bitcoin | BTC | Native coin | Own | BTC | UTXO | PoW | Programmable spending conditions (more constrained than Ethereum) |
-| <CryptoIcon name="bch" /> | BCH | Bitcoin Cash | Hard fork of BTC | Native coin | Own | BCH | UTXO | PoW (ASERT) | Increased transaction capacity, zero-confirmation transactions |
-| <CryptoIcon name="xrp" /> | XRP | XRP | - | Native coin | XRP Ledger | Account-based shared ledger | XRP | XRPL Consensus Protocol (voting) | Fast payments |
-| <CryptoIcon name="awe" url="https://s3.coinmarketcap.com/static-gravity/image/641cb26436b14a98a538708c9f7c8a82.jpg" round="true" /> | AWE | AWE | Base Network (Ethereum L2) | ERC-20 token (AI ecosystem utility and governance) | - | ETH | EVM account-based model | - | Autonomous Worlds Engine, multi-agent AI |
-| <CryptoIcon name="ltc" /> | LTC | Litecoin | - | Native coin | Litecoin | LTC | UTXO | PoW | Faster, lighter version of Bitcoin |
-| <CryptoIcon name="trx" /> | TRX | TRON | EVM-compatible | Native coin | TRON | TRX | Account-based global state | DPoS | TRON Virtual Machine, Solidity/EVM-compatible |
-| <CryptoIcon name="币安人生" url="https://s2.coinmarketcap.com/static/img/coins/128x128/38590.png" round="true" /> | 币安人生 | Binance Life | EVM-compatible | BEP-20 token | BNB Smart Chain | BNB | Account-based ledger | PoSA | Four.meme community memecoin |
-| <CryptoIcon name="doge" /> | DOGE | Dogecoin | - | Native coin | Dogecoin | DOGE | UTXO | PoW (DigiShield) | Memecoin, payment coin, no maximum supply |
-| <CryptoIcon name="floki" url="https://s2.coinmarketcap.com/static/img/coins/128x128/10804.png" /> | FLOKI | Floki | ERC-20 token | ERC-20 token (Ethereum), BEP-20 token (BNB Smart Chain) | Ethereum | ETH | Account-based EVM global state | PoS | Memecoin, application-level utility |
-| | | | - | - | BNB Smart Chain | BNB | - | PoSA | - |
-| <CryptoIcon name="giggle" url="https://s2.coinmarketcap.com/static/img/coins/128x128/38470.png" round="true" /> | GIGGLE | Giggle Fund | EVM-compatible | BEP-20 token | BNB Smart Chain | BNB | Account-based EVM global state | PoSA | Charity-themed memecoin, philanthropic tokenomics |
-| <CryptoIcon name="cake" url="https://s2.coinmarketcap.com/static/img/coins/128x128/7186.png" round="true" /> | CAKE | PancakeSwap | Exists on Ethereum | BEP-20 token | BNB Smart Chain | BNB | Account-based EVM global state | PoSA | Utility, incentive and governance token of PancakeSwap (a DEX). Exists on many networks. |
-| <CryptoIcon name="trump" url="https://s2.coinmarketcap.com/static/img/coins/128x128/35336.png" round="true" /> | TRUMP | Official Trump | - | Solana SPL token | Solana | SOL | Account-based state model | - | Political memecoin |
-</div>
-</details>
-
-## Law enforcement
-
-Tornado Cash, Samourai Wallet
+[^1]: Antonopoulos, Andreas M., and Gavin Wood. _Mastering ethereum: building smart contracts and dapps._ O'reilly Media, 2018. <a href="https://github.com/ethereumbook/ethereumbook" target="_blank" rel="noopener noreferrer">https://github.com/ethereumbook/ethereumbook</a>
+[^2]: Wood, Gavin. "Ethereum: A secure decentralised generalised transaction ledger." _Ethereum project yellow paper_ 151.2014 (2014): 1-32. <a href="https://ethereum.github.io/yellowpaper/paper.pdf" target="_blank" rel="noopener noreferrer">https://ethereum.github.io/yellowpaper/paper.pdf</a>
