@@ -1,4 +1,5 @@
 ---
+
 layout: ../../../layouts/PostLayout.astro
 title: A quick and comprehensive introduction to Ethereum
 description: Ethereum - A cryptocurrency, but not only
@@ -26,9 +27,32 @@ import tokenData from "data/coin-data.json";
 
 ## Consensus mechanisms
 
+Principle oof consensus:
+- Safety: no issues such as double-spending or transaction conflicts.
+- Finality: there is a point of no-return where transactions are permanent and irreversible.
+- Liveness: any new transaction will eventually be included in the blockchain at some point.
+
+Blockchain forking enables high liveness, but breaks finality guarantees, as the non-canonical forks will have to reverse the effects of their transactions in order to catch up with the canonical branch.
+
+### Practical Byzantine fault tolerance (PBFT)
+
+TODO
+
+### Proof of Work (PoW)
+
+<lex data-category="Proof of Work (PoW)"></lex>
+
+The goal of mining is not to create new coins. Coin minting is just an incentive (a reward) for PoW, which secures the network. PoW guarantees security by ensuring that the computional effort is too large to be made by a single entity, even a high-budget one.
+
+Ethereum's PoW algorithm is called Ethash, and is resistant to ASIC (application-specific integrated circuit) mining equipments. This means that it's difficult to build a hardware that is order of magnitude faster than GPUs, which prevents centralization of mining in specialized infrastructures.
+
 - <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pow/" target="_blank" rel="noopener noreferrer">Proof of Work (PoW)</a>
 - <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pos/" target="_blank" rel="noopener noreferrer">Proof of Stake (PoS)</a>
 - <a href="https://ethereum.org/developers/docs/consensus-mechanisms/poa/" target="_blank" rel="noopener noreferrer">Proof of Authority (PoA)</a>
+
+### Proof of Stake (PoS)
+
+<lex data-category="Proof of Stake (PoS)"></lex>
 
 ## Ledger models
 
@@ -60,6 +84,44 @@ From the Ethereum's "Yellow Paper"[^2]:
 | 30+6n | KECCAK256 (n = number of words in the input data) |
 | 21000 | (Paid for every transaction) |
 | 32000 | CREATE |
+
+## Ecosystems
+
+| Ecosystem | Main chain type | Security | Block proposal | Gas token | Governance token |
+| :-------- | :-------------- | :------- | :------------- | :--------- | :---------------- |
+| <lex data-category="Ethereum Ecosystem">Ethereum</lex> | Independent L1 | Ethereum PoS validators | Ethereum validators | ETH | - |
+| <lex data-category="BNB Chain Ecosystem">BNB Chain</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Arbitrum Ecosystem">Arbitrum</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Polygon Ecosystem">Polygon</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Avalanche Ecosystem">Avalanche</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Solana Ecosystem">Solana</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Optimism Ecosystem">Optimism</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Base Ecosystem">Base</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Curve Ecosystem">Curve</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Aptos Ecosystem">Aptos</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Neon Ecosystem">Neon</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Unichain Ecosystem">Unichain</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="ZkSync Ecosystem">ZkSync</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="opBNB Ecosystem">opBNB</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Venice Ecosystem">Venice</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Theta Ecosystem">Theta</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Plasma Ecosystem">Plasma</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Sei Network Ecosystem">Sei Network</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Cardano Ecosystem">Cardano</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Near Protocol Ecosystem">Near Protocol</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Internet Computer Ecosystem">Internet Computer</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="GalaChain Ecosystem">GalaChain</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Yearn Ecosystem">Yearn</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Story Ecosystem">Story</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Energi Ecosystem">Energi</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="Zora Ecosystem">Zora</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="BeamPrivacy Ecosystem">BeamPrivacy</lex> | TODO | TODO | TODO | TODO | TODO |
+| <lex data-category="XRP Ledger Ecosystem">XRP Ledger</lex> | TODO | TODO | TODO | TODO | TODO |
+
+## Portfolios
+
+TODO
+
 
 ## Zero-knowledge proofs
 
@@ -167,6 +229,12 @@ Solutions:
 - L2 solutions
 - EIP-4844 (proto-danksharding)
 
+## TODO
+
+ENS (Ethereum Name Service) = decentralized naming system mapping human-readable names (e.g., vitalik.eth) to records such as Ethereum addresses, Bitcoin addresses, website URLs, email addresses, etc. 
+
+ENS registry = central coordination smart contract. It selects which registrar (contract) to call. Etc.
+
 ---
 
 
@@ -210,7 +278,7 @@ Computation oracles can be used to run arbitrary functions.
 ZK coprocessors (Lagrange and Brevis): enable running expensive computations off-chain while ensuring on-chain verification.
 Decentralized oracles with on-chain data aggregation systems. Example: Chainlink protocol, SchellingCoin protocol (rewards reporters that report values close to the median).
 
-Cross-chain messaging protocols:
+<lex data-category="Cross-chain Communication">Cross-chain messaging protocols</lex>:
 - LayerZero: The LayerZero endpoint (a smart contract) in chain A sends the data to an off-chain relayer and an off-chain oracle, which send the data to a LayerZero endpoint in chain B.
 - Wormhole: enable transfers between Solana, Ethereum, Binance Smart Chain, Hyperliquid and Avalanche. Uses a network of off-chain guardians to improve security.
 - CCIP (Chainlink's Interoperability Protocol): uses decentralized oracles. Locks/burns tokens on the source chain, and unlocks/mints tokens on the destination chain.
@@ -292,14 +360,16 @@ Build your own IPFS node: https://www.bgipfs.com/
 
 ## Decentralized Finance (DeFi)
 
+<lex data-category="Decentralized Finance (DeFi)"></lex>
+
 Fiat currencies (+ barries to entry) -> TradFi
 Cryptocurrencies -> DeFi
 
 <CryptoIcon name="usdc" /> USDC: a token whose value is pegged to one dollar, and natively issued on the Arbitrum chain.
 USDC.e: a token transferred from another chain to Arbitrum (USDC risk + risks related to the bridging process).
 
-Centralized exchange (CEX): maintains accounts and controls the trading system. Examples: Binance, Coinbase, Kraken, OKX, Gemini, Bitstamp.
-Decentralized exchange (DEX): platform that uses smart contracts to manage transactions automatically. Examples: Uniswap, Curve, PancakeSwap, dYdX, SushiSwap, Balancer.
+Centralized exchange (CEX): maintains accounts and controls the trading system. Examples: Binance, Coinbase, Kraken, OKX, Gemini, Bitstamp. When you buy 3 ETH on Binance, it happens off-chain, as it only results in a database change on Binance's side: nothing happens on the user's Ethereum account, as Binance takes care of holding a reserve on its own wallet.
+<lex data-category="Decentralized Exchange (DEX)">Decentralized exchange (DEX)</lex>: platform that uses smart contracts to manage transactions automatically. Examples: Uniswap, Curve, PancakeSwap, dYdX, SushiSwap, Balancer.
 
 Order book model: difficult to use on-chain due to the blockchain speed.
 <lex data-category="Automated Market Maker (AMM)">Automated market maker (AMM) model</lex>: prices are determined by the ratio of tokens in the liquidity pools.
@@ -350,12 +420,17 @@ In Proof of Work, miners spend electricity and computing power to secure the net
 In Proof of Stake, validators put cryptocurrency at financial risk to secure it.
 Ethereum moved from PoW to PoS in September 2022. The `difficulty` field is still present in block headers for backward compatibility, and is set to 0. Security now comes from the risk of penalities, not the computational barrier.
 
-RWAs (real-world assets): stocks, bonds, fractions of real estate, fine art, etc. Rely on custodians -> not really decentralized.
+<lex data-category="Real World Assets"><lex data-category="Real World Assets (RWA)">RWAs (real-world assets)</lex></lex>: stocks, bonds, fractions of real estate, fine art, etc. Rely on custodians -> not really decentralized.
+TODO
 
 Bridges = specialized protocols that facilitate the transfer of assets/data between different blockchains.
 - Wrapped-token bridges (lock and mint)
 - Mint and burn
 - Liquidity bridges: no new tokens are minted; the bridge already holds tokens on both chains.
+
+## Artificial intelligence
+
+
 
 ---
 

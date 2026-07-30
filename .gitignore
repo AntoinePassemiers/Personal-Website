@@ -1,3 +1,5 @@
+*.humanproof.json
+
 .astro/
 node_modules/
 build/
