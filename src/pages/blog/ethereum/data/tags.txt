@@ -10,37 +10,27 @@ IoT
 Analytics
 Wallet
 US Strategic Crypto Reserve
-Placeholder Ventures Portfolio
 DAO
 Social Token
 Animal Memes
-Exnetwork Capital Portfolio
 Social Money
 Binance Alpha
-Blockchain Capital Portfolio
 Capital Launchpad
 DeSci
 ParaFi Capital
 Lending & Borrowing
-Animoca Brands Portfolio
-Fabric Ventures Portfolio
 MoveVM (MVM)
 Perp dex coins
 Smart Contracts
 Enterprise Solutions
-Arrington XRP Capital Portfolio
 Asset Management
 Telegram Bot
 Binance Megadrop
 Governance
-LedgerPrime Portfolio
 DePIN
 Rollups
 Restaking
 Video
-Coinfund Portfolio
-DCG Portfolio
-Winklevoss Capital Portfolio
 Education
 Communications & Social Media
 MVB
@@ -55,18 +45,13 @@ Cross-Chain
 Centralized Exchange (CEX) Token
 Internet Capital Markets
 Web3
-Token
 Trading Card Game (TCG)
 Distributed Computing
-DragonFly Capital Portfolio
-CMS Holdings Portfolio
 X11
 Storage
-DWF Labs Portfolio
 Tap To Earn (T2E)
 Hybrid - PoW & PoS
 Gaming Guild
-BoostVC Portfolio
 State Channel
 Substrate
 Synthetics
@@ -81,26 +66,22 @@ Layer 1
 Binance Launchpool
 Derivatives
 Binance HODLer Airdrops
-DeFiance Capital Portfolio
 Launchpad
 Services
 Escrow
 USD Stablecoin
 Research
 Platform
-Kenetic Capital Portfolio
 Binance Alpha Airdrops
 Marketplace
 Play To Earn
 Political Memes
-PetRock Capital Portfolio
 Equihash
 Decentralized Exchange (DEX) Token
 Interoperability
 Doggone Doggerel
 Identity
 Asset-Backed Stablecoin
-Hashkey Capital Portfolio
 Memes
 Multiple algorithms
 Store Of Value
@@ -114,23 +95,18 @@ Privacy
 RingCT
 Terminal of Truths
 Modular Blockchain
-Standard Crypto Portfolio
 Filesharing
 Parallelized EVM
-Polygon Ventures Portfolio
 Art
 Tokenized Assets
 Cosmos
 Robotics
 Fiat Stablecoin
-Electric Capital Portfolio
 Hardware
 Yield Farming
 Made in America
-Circle Ventures Portfolio
 FTX Bankruptcy Estate
 IP Memes
-Alameda Research Portfolio
 Blake2S
 AI Applications
 Sidechain
@@ -141,8 +117,6 @@ Neobank
 Media
 Binance Listing
 Quantum-Resistant
-Polychain Capital Portfolio
-World Liberty Financial Portfolio
 DeFAI
 Moonshot
 Metaverse
@@ -150,18 +124,13 @@ Intent
 Crowdsourcing
 AI & Big Data
 Content Creation
-Paradigm Portfolio
 Hybrid - PoW & DPoS
-VBC Ventures Portfolio
 Data Availability
 Reputation
 Runes
 Payments
-Framework Ventures Portfolio
-Coinbase Ventures Portfolio
 Sino Global Capital
 DAG
-Pantera Capital Portfolio
 TokenFi Launchpad
 Scaling
 Opensource
@@ -173,5 +142,4 @@ Binance Launchpad
 Alleged SEC Securities
 Layer 2
 Oracles
-Galaxy Digital Portfolio
 Scrypt
