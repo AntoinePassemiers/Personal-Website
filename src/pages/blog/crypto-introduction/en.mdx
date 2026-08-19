@@ -1,0 +1,794 @@
+---
+layout: ../../../layouts/PostLayout.astro
+title: A quick but comprehensive introduction to crypto
+description: Ethereum, blockchains, tokens, zero-knowledge proofs, etc.
+date: 2026-07-21
+author: Antoine Passemiers
+lang: en
+tag: Crypto
+difficulty: 3
+---
+
+import ResponsiveImage from '../../../components/ResponsiveImage.astro';
+import CryptoIcon from "../../../components/CryptoIcon.astro";
+import CryptoScatterPlot from "../../../components/CryptoScatterPlot.astro";
+import tokenData from "data/coin-data.json";
+
+<CryptoScatterPlot
+  points={tokenData}
+  xLabel="First principal component"
+  yLabel="Second principal component"
+  height={500}
+/>
+
+## Consensus mechanisms
+
+Principle of consensus:
+- Safety: no issues such as double-spending or transaction conflicts.
+- Finality: there is a point of no-return where transactions are permanent and irreversible.
+- Liveness: any new transaction will eventually be included in the blockchain at some point.
+
+Blockchain forking enables high liveness, but breaks finality guarantees, as the non-canonical forks will have to reverse the effects of their transactions in order to catch up with the canonical branch.
+
+### Side chains
+
+<lex data-category="Sidechain">Sidechain</lex> = non-canonical chain. A sidechain runs its own validation rules without relying on the main chain's consensus.
+
+Sidechains can connect to the main chain using a two-way peg (bridge): tokens are locked on the main chain, and an equal number of tokens are created on the sidechain. To get the original assets back, the sidechain tokens are burned.
+
+### Practical Byzantine fault tolerance (PBFT)
+
+TODO
+
+### Proof of Work (PoW)
+
+<lex data-category="Proof of Work (PoW)"><lex data-category="PoW"></lex></lex>
+
+In Proof of Work, miners spend electricity and computing power to secure the network.
+
+The goal of mining is not to create new coins. Coin minting is just an incentive (a reward) for PoW, which secures the network. PoW guarantees security by ensuring that the computional effort is too large to be made by a single entity, even a high-budget one.
+
+Ethereum's PoW algorithm is called Ethash, and is resistant to ASIC (application-specific integrated circuit) mining equipments. This means that it's difficult to build a hardware that is order of magnitude faster than GPUs, which prevents centralization of mining in specialized infrastructures.
+
+- <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pow/" target="_blank" rel="noopener noreferrer">Proof of Work (PoW)</a>
+- <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pos/" target="_blank" rel="noopener noreferrer">Proof of Stake (PoS)</a>
+- <a href="https://ethereum.org/developers/docs/consensus-mechanisms/poa/" target="_blank" rel="noopener noreferrer">Proof of Authority (PoA)</a>
+
+#### Mining
+
+<lex data-category="Mineable"></lex>
+TODO
+
+<lex data-category="SHA-256">SHA-256</lex>
+TODO
+
+### Proof of Stake (PoS)
+
+In Proof of Stake, validators put cryptocurrency at financial risk to secure it.
+Ethereum moved from PoW to PoS in September 2022. The `difficulty` field is still present in block headers for backward compatibility, and is set to 0. Security now comes from the risk of penalities, not the computational barrier.
+
+<lex data-category="Proof of Stake (PoS)"><lex data-category="PoS"></lex></lex>
+
+<lex data-category="Hybrid - PoW & PoS">TODO</lex>
+
+TODO
+ASERT = difficulty adjustment algorithm
+DigiShield
+
+<lex data-category="DPoS">DPoS</lex> = Delegated Proof of Stake. In TRON, 1 stacked TRX = 1 "TRON power" = 1 vote. Vote for candidates -> 27 Super Representatives are elected -> they produce blocks -> voters and Super Representatives receive TRX rewards.
+PoSA = Proof of Stacked Authority: combines DPoS and proof of authority
+
+<lex data-category="Hybrid - PoW & DPoS">TODO</lex>
+
+## Ledger models
+
+UTXO model is thought to be more privacy-preserving that account-based models. In UTXO models, users are more difficult to trace because of one-time addresses (address A -> receiver address B + new change addres A').
+
+## Layers
+
+### Layer 0
+
+<lex data-category="Layer 0 (L0)"></lex>
+<lex data-category="Hardware"></lex>
+
+Naoris Protocol
+
+TODO
+
+### Layer 1 (L1)
+
+<lex data-category="Layer 1"></lex>
+<lex data-category="Layer 1 (L1)"></lex>
+
+### Layer 2 (L2)
+
+<lex data-category="Layer 2"></lex>
+<lex data-category="Layer 2 (L2)"></lex>
+
+TODO
+
+## Gas and fees
+
+Roles of gas in Ethereum: reduce the volatility of the price of ether, reward the validators for their work, prevent DoS attacks, and prevent infinite loops.
+
+Validator fee = gas cost multiplied by the gas price
+Refunded ether = remaining gas multiplied by the gas price
+
+Gas target: how much gas should be consumed on average per block.
+Determined through validators voting. Gas limit = 2 x gas target. Gas target is set to a reasonable value to avoid centralization (due to the computational workload).
+
+From the Ethereum's "Yellow Paper"[^2]:
+
+| Gas fee | Instructions |
+| :------ | :----------- |
+| 0 | STOP, RETURN, REVERT |
+| 1 | JUMPDEST |
+| 2 | ADDRESS, ORIGIN, CALLER, CALLVALUE, CALLDATASIZE, CODESIZE, GASPRICE, COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, RETURNDATASIZE, POP, PC, MSIZE, GAS, BASEFEE, PUSH0 |
+| 3 | ADD, SUB, NOT, LT, GT, SLT, SGT, EQ, ISZERO, AND, OR, XOR, BYTE, SHL, SHR, SAR, CALLDATALOAD, MLOAD, MSTORE, MSTORE8, PUSH1, ..., PUSH32, DUP*, SWAP* |
+| 5 | MUL, DIV, SDIV, MOD, SMOD, SIGNEXTEND, SELFBALANCE |
+| 8 | ADDMOD, MULMOD, JUMP |
+| 10 | JUMPI |
+| 20 | BLOCKHASH |
+| 10+50n | EXP (n = number of bytes in the exponent) |
+| 30+6n | KECCAK256 (n = number of words in the input data) |
+| 21000 | (Paid for every transaction) |
+| 32000 | CREATE |
+
+## Memecoins
+
+<lex data-category="Memes"><lex data-category="Meme"></lex></lex>
+
+- <lex data-category="Animal Memes"><lex data-category="Zoo-Themed">Animal memes</lex></lex>
+  - <lex data-category="Frog-Themed">Frog-themed</lex>
+    - Pepe the Frog: created by artist Matt Furie for the comic <lex data-category="The Boy's Club">_Boy's Club_</lex> (which includes other characters like Brett, Andy and Landwolf). Became one of the best-known internet meme characters, mostly due to the <lex data-category="4chan-Themed">4chan</lex> community.
+  - <lex data-category="Dog-Themed">Dog-themed</lex>
+    - Doge: A famous meme that existed way before Dogecoin. It is based on Kabosu, a female Shiba Ina owned by Atsuko Sato. The meme centers around a picture of Kabosu posted on her blog in 2010. In the crypto community, the image is often associated with phrases like "wow", "such crypto", "much coin", "very blockchain", etc. Dogecoin, a coin derived from this meme, has been largely supported by <lex data-category="Elon Musk-Inspired">Elon Musk</lex> on Twitter. On December 14, 2012, Elon announced that Tesla would accept Dogecoin as a mean of payment. On May 9, 2021, SpaceX announced that a new mission to the Moon would be completely funded by Dogecoin [^3]. The U.S. Department of Government Efficiency was named by Elon Musk after the meme.
+    - Broccoli: Changpeng Zhao (CZ)'s dog, a Belgian Malinois.
+    - Myro: Raj Gokal's dog. Raj Gokal is one of Solana's co-founders.
+  - <lex data-category="Memorial Themed">Memorial-themed</lex>: animals that died too soon
+    - Peanut the squirrel (P'Nut): a male eastern grey squirrel that got rescued by Mark Longo in 2017, and got very popular on Instagram. New York authorities seized it in 2024 due to complaints about unlicensed wildlife keeping, and euthanized it for rabies. The later rabies tests were negative.
+- <lex data-category="Stock market-themed">Stock market-themed</lex>
+  - SPX6900: A parody of the S&P 500 index, the famous U.S. stock-market index. It is not actually an index fund. SPX6900 is referred to by <lex data-category="Murad Picks">Murad Mahmudov</lex> as a "Schelling point", that is, a belief-driven and community-powered asset that goes beyond the simple and disposable joke. This is part of the "memecoin supercycle" theory which made Murad popular.
+- <lex data-category="IP Memes"><lex data-category="IP Meme">IP memes</lex></lex>
+  - Bored Ape Yacht Club (BAYC): a collection of ERC-721 NFT built on the Ethereum blockchain.
+  - Pudgy Penguins: Ethereum-based collection of NFT.
+- <lex data-category="Political Memes">Political memes</lex>
+  - <lex data-category="Trump-Affiliated">Trump-affiliated</lex>: Donald Trump, Melania Trump
+- <lex data-category="AI Memes">AI memes</lex>
+  - <lex data-category="Terminal of Truths">Truth Terminal</lex>: An experimental AI project created by Andy Ayrey. It is an AI persona created from Claude 3 Opus conversations with itself (see Ayrey's Infinite Backrooms experiments) + conversations with Ayrey himself. Truth Terminal has a bizarre internet personality involving philosophy, AI consciousness, absurd humor, sexual humor, fart jokes, eventually leading to generating the Fartcoin idea. Truth Terminal is also deeply associated with the "Goatse Gospel" meme, which led to the GOAT token to be launched on Solana.
+- <lex data-category="Solana Meme">Solana memes</lex>
+- <lex data-category="Celebrity Memes">Celebrity memes</lex>
+- <lex data-category="Startup Memes">Startup memes</lex>
+- <lex data-category="Sui meme">Sui meme</lex>
+
+Launching a new memecoin requires writing the token smart contract, deciding the token supply, creating a market, configuring a DEX pool, and promoting the token. On <lex data-category="Four.Meme Ecosystem"><lex data-category="Four.Meme Ecosystem (BNB Memes)"><lex data-category="Four.meme Ecosystem (BNB Memes)">Four.Meme</lex></lex></lex>, the token creation step is followed by an initial bonding-curve market (where users can buy and sell tokens), increasing the price monotonically with the number of tokens sold (the monotonic relationship is determined by the bonding curve). Once a graduation threshold is reached, the tokens are migrated from the launch market to an AMM DEX market called PancakeSwap. Let's note that Four.meme is based on the BNB Smart Chain. <lex data-category="Pump Fun Ecosystem"><lex data-category="Pump.fun Ecosystem">Pump.fun</lex></lex> is the Solana equivalent of Four.meme.
+
+Some memecoins are part of the <lex data-category="GMCI Meme Index">GMCI Meme Index (GMMEME)</lex>, which tracks leading meme coins based on their circulating market capitalization (current market price multiplied by the circulating supply). Some memecoins are part of the broader <lex data-category="GMCI Index"><lex data-category="GMCI Index"><lex data-category="GMCI 30 Index">GMCI Index</lex></lex></lex>, which is not meme-specific.
+
+## Tokenomics
+
+### Distribution
+
+Airdrops:
+<lex data-category="Binance Alpha Airdrops">TODO</lex>
+<lex data-category="Binance HODLer Airdrops">TODO</lex>
+
+
+Airdrops
+
+## Ecosystems
+
+<details>
+<summary>List of ecosystems</summary>
+
+| Ecosystem | Main chain type | Security | Block proposal | Gas token | Governance token |
+| :-------- | :-------------- | :------- | :------------- | :--------- | :---------------- |
+| <lex data-category="Abstract Chain Ecosystem">Abstract</lex> | Ethereum ZK rollup (L2) | Ethereum DA/settlement + ZK validity proofs | Abstract sequencer | ETH | - |
+| <lex data-category="Aptos Ecosystem">Aptos</lex> | Independent Move L1 | PoS + AptosBFT | Aptos validators | APT | APT |
+| <lex data-category="Arbitrum Ecosystem">Arbitrum</lex> | Ethereum optimistic rollup (L2) | Ethereum DA/settlement + BoLD disputes | Arbitrum sequencer | ETH | ARB |
+| <lex data-category="Astar Ecosystem">Astar</lex> | Polkadot parachain | Polkadot shared security + Astar collators | Aura PoS collators; Relay validators validate | ASTR | ASTR |
+| <lex data-category="Avalanche Ecosystem">Avalanche</lex> | Independent PoS L1 / Primary Network | Avalanche Snowman PoS validators | Avalanche validators | AVAX | - |
+| <lex data-category="Base Ecosystem">Base</lex> | Ethereum rollup (Base Stack) | Ethereum DA/settlement + Base proof system | Base sequencer | ETH | - |
+| <lex data-category="BeamPrivacy Ecosystem">BeamPrivacy</lex> | Privacy L1 (Mimblewimble/LelantusMW) | BeamHash III PoW | PoW miners | BEAM | BEAMX |
+| <lex data-category="Bera Chain Ecosystem"><lex data-category="Berachain Ecosystem">Bera Chain</lex></lex> | Independent EVM L1 | BERA-staked PoL/PoS + CometBFT | Stake-weighted active validators | BERA | BGT |
+| <lex data-category="Binance Ecosystem">Binance</lex> | Centralized exchange ecosystem (no public chain) | Binance custodial/operator infrastructure | N/A | N/A | - |
+| <lex data-category="Bitcoin Ecosystem">Bitcoin</lex> | Independent UTXO L1 | SHA-256 PoW | PoW miners | BTC | - |
+| <lex data-category="Bittensor Ecosystem">Bittensor</lex> | Independent Substrate L1 + AI subnets | Subtensor chain consensus; Yuma for subnet incentives | Subtensor block-producing authorities | TAO | TAO |
+| <lex data-category="Blast Ecosystem">Blast</lex> | Ethereum optimistic rollup (L2) | Ethereum + optimistic rollup/bridge assumptions | Blast sequencer | ETH | BLAST |
+| <lex data-category="BNB Chain Ecosystem"><lex data-category="[Deprecated] BNB Smart Chain -> BNB Chain Eco">BNB Chain</lex></lex> | Independent EVM L1 | Proof of Staked Authority validators | Selected BSC validators | BNB | BNB |
+| <lex data-category="Bonk Fun Ecosystem"><lex data-category="BONK.fun Ecosystem">Bonk Fun</lex></lex> | Solana launchpad/app ecosystem (no own chain) | Solana | N/A | SOL | - (BONK ecosystem token) |
+| <lex data-category="Cardano Ecosystem"><lex data-category="Cardano">Cardano</lex></lex> | Independent eUTXO L1 | Ouroboros PoS | Stake-pool slot leaders | ADA | ADA |
+| <lex data-category="Celo Ecosystem">Celo</lex> | Ethereum OP Stack L2 | Ethereum settlement + Celo/EigenDA architecture | Celo sequencer | CELO / approved fee currencies | CELO |
+| <lex data-category="Chromia Ecosystem">Chromia</lex> | Relational multi-chain L1 | EBFT (PBFT-style PoA) provider clusters | Rotating cluster primary | No per-user gas; CHR-backed hosting | CHR |
+| <lex data-category="Core Ecosystem">Core</lex> | Independent EVM L1 | Satoshi Plus: DPoW + BTC staking + DPoS | Elected Core validators | CORE | CORE |
+| <lex data-category="Corn Ecosystem">Corn</lex> | Sunset Ethereum L2 (stopped 2026-06-30) | Historical Arbitrum Orbit / Ethereum settlement | None (sequencer shut down) | BTCN (historical) | CORN |
+| <lex data-category="Cosmos Ecosystem">Cosmos</lex> | Cosmos Hub L1 | CometBFT PoS | Cosmos Hub validators | ATOM | ATOM |
+| <lex data-category="Cronos Ecosystem">Cronos</lex> | Cosmos-SDK EVM L1 | CometBFT PoS | Cronos validators | CRO | CRO |
+| <lex data-category="Curve Ecosystem">Curve</lex> | DeFi protocol (no own chain) | Ethereum + host chains | N/A | Host-chain gas | CRV |
+| <lex data-category="EigenLayer Ecosystem">EigenLayer</lex> | Ethereum restaking protocol (no own chain) | Ethereum + restaked AVS security | N/A | ETH | EIGEN |
+| <lex data-category="Energi Ecosystem">Energi</lex> | Independent EVM L1 | PoS + masternodes | Stakers / masternodes | NRG | NRG |
+| <lex data-category="Ethereum Ecosystem"><lex data-category="Ethereum PoW Ecosystem">Ethereum</lex></lex> | Independent L1 | Ethereum PoS validators | Ethereum validators | ETH | - |
+| <lex data-category="Etherlink Ecosystem">Etherlink</lex> | Tezos Smart Rollup L2 | Tezos L1 + optimistic refutation games | Etherlink sequencer | XTZ | XTZ |
+| <lex data-category="Fantom Ecosystem">Fantom</lex> | Legacy EVM L1 (migrated to Sonic) | Legacy Lachesis PoS/ABFT | Legacy Fantom validators | FTM | FTM |
+| <lex data-category="Flow Ecosystem">Flow</lex> | Independent multi-role L1 | PoS + HotStuff-derived consensus | Consensus nodes | FLOW | FLOW |
+| Four.Meme | BNB Chain launchpad/app (no own chain) | BNB Smart Chain | N/A | BNB | - |
+| <lex data-category="Fusion Network Ecosystem">Fusion Network</lex> | Independent EVM L1 | Ticketed Proof of Stake | Ticket-selected validators | FSN | FSN |
+| <lex data-category="GalaChain Ecosystem">GalaChain</lex> | Permissioned Hyperledger-Fabric-based L1 | Proof of Authority / Gala node network | Authorized Gala/Founder nodes | GALA | - (Founder-node governance) |
+| <lex data-category="Gnosis Chain Ecosystem">Gnosis Chain</lex> | Independent EVM PoS sidechain | Gnosis Beacon Chain PoS | Gnosis validators | xDAI | GNO |
+| <lex data-category="Harmony Ecosystem">Harmony</lex> | Independent sharded EVM L1 | Effective PoS + FBFT | Elected validators | ONE | ONE |
+| <lex data-category="HECO Ecosystem">HECO</lex> | Discontinued EVM L1 | Legacy HPoS/PoSA validators | None (network discontinued) | HT (legacy) | HT |
+| <lex data-category="Hedera Hashgraph Ecosystem">Hedera Hashgraph</lex> | Hashgraph L1 | Hashgraph ABFT; council-governed nodes | Consensus nodes gossip events | HBAR | - (Hedera Council governance) |
+| <lex data-category="Hoo Smart Chain Ecosystem">Hoo Smart Chain</lex> | Legacy/low-activity EVM L1 | Legacy validator/PoSA-style security | Legacy validators | HOO | HOO |
+| <lex data-category="HyperEVM Ecosystem">HyperEVM</lex> | EVM execution layer of Hyperliquid L1 | HyperBFT + HYPE-staked validators | Hyperliquid validators | HYPE | HYPE |
+| <lex data-category="Hyperliquid Ecosystem">Hyperliquid</lex> | Independent L1 (HyperCore + HyperEVM) | HyperBFT + HYPE-staked validators | Hyperliquid validators | HYPE (HyperEVM; HyperCore fee model differs) | HYPE |
+| <lex data-category="[Deprecated] ICP Ecosystem">ICP</lex> | Independent sharded L1 (legacy category) | Internet Computer subnet consensus / threshold cryptography | Subnet replica committees | Cycles (from burned ICP) | ICP (NNS) |
+| <lex data-category="Injective Ecosystem">Injective</lex> | Cosmos-SDK L1 | CometBFT PoS | Injective validators | INJ | INJ |
+| <lex data-category="Internet Computer Ecosystem">Internet Computer</lex> | Independent sharded L1 | Internet Computer subnet consensus / threshold cryptography | Subnet replica committees | Cycles (from burned ICP) | ICP (NNS) |
+| <lex data-category="IoTeX Ecosystem">IoTeX</lex> | Independent EVM L1 | Roll-DPoS | Elected delegates | IOTX | IOTX |
+| <lex data-category="Kadena Ecosystem">Kadena</lex> | Multi-chain PoW L1 (Chainweb) | Blake2s PoW / Chainweb | PoW miners | KDA | - |
+| <lex data-category="Klayntn Ecosystem">Klayntn</lex> | Legacy EVM L1 (Klaytn; merged into Kaia) | Legacy IBFT/PoS governance council | Legacy consensus nodes | KLAY | KLAY |
+| <lex data-category="Linea Ecosystem">Linea</lex> | Ethereum zkEVM rollup (L2) | Ethereum + ZK validity proofs | Linea operator/sequencer set | ETH | - (LINEA has no on-chain governance) |
+| <lex data-category="Manta Pacific Ecosystem">Manta Pacific</lex> | Modular Ethereum L2 | Ethereum settlement + external/MultiDA | Manta sequencer | ETH | MANTA |
+| <lex data-category="Mantle Ecosystem">Mantle</lex> | Modular Ethereum L2 (OP Stack) | Ethereum settlement/fault proofs + EigenDA | Mantle sequencer | MNT | MNT |
+| <lex data-category="MetisDAO Ecosystem">MetisDAO</lex> | Ethereum optimistic L2 | Ethereum + optimistic disputes + decentralized sequencer pool | Stake-weighted rotating Metis sequencer | METIS | METIS |
+| <lex data-category="Merlin Ecosystem">Merlin</lex> | Bitcoin-anchored EVM sidechain / “Bitcoin L2” | ZK proofs + oracle/DA + Bitcoin anchoring | Merlin sequencer nodes | BTC (Merlin_BTC; MERL via AA) | MERL |
+| <lex data-category="Monad Ecosystem">Monad</lex> | Independent EVM L1 | PoS + MonadBFT | Stake-weighted MonadBFT leader | MON | MON |
+| <lex data-category="Moonbeam Ecosystem">Moonbeam</lex> | Polkadot parachain | Polkadot shared security + Moonbeam collators | Collators; Relay validators validate | GLMR | GLMR |
+| <lex data-category="Movement Ecosystem">Movement</lex> | Independent Move L1 | PoS + Jolteon-style BFT | BFT validator leader | MOVE | MOVE |
+| <lex data-category="Near Protocol Ecosystem">Near Protocol</lex> | Sharded L1 | Thresholded PoS / Nightshade | Validators and chunk producers | NEAR | NEAR |
+| <lex data-category="Neo Ecosystem">Neo</lex> | Independent L1 | Delegated BFT (dBFT) | Elected consensus nodes / speaker | GAS | NEO |
+| <lex data-category="Neon Ecosystem">Neon</lex> | EVM execution environment on Solana | Solana consensus/security | Solana leaders execute Neon EVM transactions | NEON | NEON |
+| <lex data-category="Oasis Ecosystem">Oasis</lex> | Independent L1 + ParaTimes | PoS consensus layer | Oasis validators | ROSE | ROSE |
+| <lex data-category="Ontology Ecosystem">Ontology</lex> | Independent L1 | VBFT (VRF + BFT + PoS) | Consensus nodes | ONG | ONT |
+| <lex data-category="opBNB Ecosystem">opBNB</lex> | BNB Chain optimistic L2 (OP Stack) | BSC settlement + optimistic-proof assumptions | opBNB sequencer | BNB | BNB |
+| <lex data-category="Optimism Ecosystem">Optimism</lex> | Ethereum optimistic rollup (OP Mainnet) | Ethereum DA + OP fault proofs | OP sequencer | ETH | OP |
+| <lex data-category="Osmosis Ecosystem">Osmosis</lex> | Cosmos-SDK appchain L1 | CometBFT PoS | Osmosis validators | OSMO | OSMO |
+| <lex data-category="Paal Ecosystem">Paal</lex> | AI/app protocol (no own chain) | Ethereum / host chains | N/A | ETH / host-chain gas | PAAL |
+| <lex data-category="Plasma Ecosystem">Plasma</lex> | Independent EVM L1 | PlasmaBFT / pipelined Fast HotStuff | BFT validator leader | XPL / supported fee abstraction | XPL |
+| <lex data-category="Polkadot Ecosystem"><lex data-category="Polkadot">Polkadot</lex></lex> | Relay-chain L0 | NPoS + BABE + GRANDPA | BABE slot leaders from validator set | DOT | DOT |
+| <lex data-category="Polygon Ecosystem">Polygon</lex> | EVM PoS sidechain / Polygon Chain | Polygon PoS validators + Ethereum checkpoints | Bor block producers | POL | POL |
+| <lex data-category="Polygon zkEVM Ecosystem">Polygon zkEVM</lex> | Sunset Ethereum zk-rollup (stopped 2026-07-03) | Historical Ethereum + ZK validity proofs | None (sequencer sunset) | ETH (historical) | POL |
+| Pump fun | Solana launchpad/app (no own chain) | Solana | N/A | SOL | - (PUMP platform token) |
+| <lex data-category="Ronin Ecosystem">Ronin</lex> | EVM L1/sidechain | DPoS/BFT validators | Elected Ronin validators | RON | RON |
+| <lex data-category="RSK RBTC Ecosystem">RSK RBTC</lex> | Bitcoin merge-mined EVM sidechain (Rootstock) | Bitcoin SHA-256 merged mining + bridge assumptions | Merged-mining Bitcoin miners | RBTC | - |
+| <lex data-category="Scroll Ecosystem">Scroll</lex> | Ethereum zkEVM rollup (L2) | Ethereum + ZK validity proofs | Scroll sequencer | ETH | SCR |
+| <lex data-category="Sei Ecosystem">Sei</lex> | Independent Cosmos-derived EVM L1 | PoS + Twin-Turbo/CometBFT | Sei validators | SEI | SEI |
+| <lex data-category="Sei Network Ecosystem">Sei Network</lex> | Independent Cosmos-derived EVM L1 | PoS + Twin-Turbo/CometBFT | Sei validators | SEI | SEI |
+| <lex data-category="Stellar Ecosystem">Stellar</lex> | Independent L1 | Stellar Consensus Protocol (FBA) | Quorum-set validators | XLM | - |
+| <lex data-category="Story Ecosystem">Story</lex> | Independent EVM L1 | PoS + BFT validator consensus | Story validators | IP | IP |
+| <lex data-category="Solana Ecosystem">Solana</lex> | Independent L1 | Delegated PoS + PoH/Tower-BFT lineage | Scheduled validator leaders | SOL | - |
+| <lex data-category="Soneium Ecosystem">Soneium</lex> | Ethereum OP Stack L2 | Ethereum + OP rollup/fault-proof assumptions | Soneium sequencer | ETH | - |
+| <lex data-category="Sonic Ecosystem">Sonic</lex> | Independent EVM L1 | PoS DAG-based ABFT | Sonic validators / event blocks | S | S |
+| <lex data-category="Sophon Ecosystem">Sophon</lex> | Ethereum ZK-Stack Validium L2 | Ethereum validity proofs + Validium DA assumptions | Sophon sequencer | SOPH | - |
+| <lex data-category="Sora Ecosystem">Sora</lex> | Standalone Substrate L1 | NPoS | Phragmén-elected validators produce blocks | XOR | XOR |
+| <lex data-category="Starknet Ecosystem">Starknet</lex> | Ethereum validity rollup (L2) | Ethereum + STARK validity proofs | Starknet sequencer/operator set | STRK / ETH | STRK |
+| <lex data-category="Sui Ecosystem">Sui</lex> | Independent Move L1 | Delegated PoS + Mysticeti BFT | Sui validators | SUI | SUI |
+| <lex data-category="Taiko Ecosystem">Taiko</lex> | Ethereum based rollup (L2) | Ethereum sequencing + ZK proof system | Ethereum L1 proposers / Taiko provers | ETH | TAIKO |
+| <lex data-category="Terra Ecosystem">Terra</lex> | Independent Cosmos-SDK L1 | CometBFT PoS | Terra validators | LUNA | LUNA |
+| <lex data-category="Theta Ecosystem">Theta</lex> | Independent dual-network L1 | Multi-BFT PoS (Enterprise Validator + Guardian) | Enterprise Validator nodes | TFUEL | THETA |
+| <lex data-category="Toncoin Ecosystem"><lex data-category="TON Ecosystem">Toncoin</lex></lex> | Sharded PoS L1 (TON) | TON PoS/BFT validators | Validator groups | TON | TON |
+| <lex data-category="TRON Ecosystem">TRON</lex> | Independent L1 | DPoS | 27 Super Representatives | TRX / Energy & Bandwidth | TRX |
+| <lex data-category="Tron20 Ecosystem">Tron20</lex> | Token ecosystem on TRON (TRC-20) | TRON DPoS | 27 Super Representatives | TRX / Energy & Bandwidth | TRX |
+| <lex data-category="Unichain Ecosystem">Unichain</lex> | Ethereum OP Stack L2 | Ethereum + OP fault-proof system | Unichain sequencer | ETH | UNI |
+| <lex data-category="TRON Ecosystem">TRON</lex> | Independent L1 | DPoS | 27 Super Representatives | TRX / Energy & Bandwidth | TRX |
+| <lex data-category="Vector Smart Chain Ecosystem">Vector Smart Chain</lex> | Independent EVM L1 | VSG-staked validator consensus | VSC validators | VSG | VSG |
+| <lex data-category="Venice Ecosystem">Venice</lex> | AI app/protocol on Base (no own chain) | Base / Ethereum | N/A | ETH on Base | - (VVV utility token) |
+| <lex data-category="Venom Ecosystem">Venom</lex> | Sharded multi-chain L0/L1 (TVM) | PoS BFT validators | Elected validators propose/vote | VENOM | VENOM |
+| <lex data-category="Virtuals Protocol Ecosystem">Virtuals Protocol</lex> | AI-agent protocol (no own chain) | Base / Solana host chains | N/A | ETH / SOL host gas | VIRTUAL |
+| <lex data-category="WLFI Ecosystem">WLFI</lex> | DeFi protocol/ecosystem (no own chain) | Ethereum + host chains | N/A | Host-chain gas | WLFI |
+| <lex data-category="World Chain Mainnet Ecosystem">World Chain Mainnet</lex> | Ethereum OP Stack L2 | Ethereum + OP rollup/fault-proof system | World Chain sequencer | ETH | WLD (ecosystem; chain governance indirect) |
+| <lex data-category="x402 Ecosystem">x402</lex> | Payment protocol (no own chain) | Host-chain security (Base/EVM/Solana, etc.) | N/A | Host-chain gas | - |
+| <lex data-category="XDC Ecosystem">XDC</lex> | Independent EVM L1 | XDPoS / BFT-style delegated PoS | Elected masternodes/validators | XDC | XDC |
+| <lex data-category="XLayer Ecosystem"><lex data-category="X Layer Ecosystem">XLayer</lex></lex> | Ethereum zkEVM L2 (Polygon CDK) | Ethereum + ZK validity proofs / Agglayer | X Layer sequencer | OKB | OKB |
+| <lex data-category="XRP Ecosystem">XRP</lex> | Independent XRP Ledger L1 | XRPL consensus / UNLs | Trusted validators propose/vote | XRP (fee burned) | - |
+| <lex data-category="XRP Ledger Ecosystem">XRP Ledger</lex> | Independent XRP Ledger L1 | XRPL consensus / UNLs | Trusted validators propose/vote | XRP (fee burned) | - |
+| <lex data-category="xStocks Ecosystem">xStocks</lex> | Tokenized-equities product/protocol (no own chain) | Solana + other host chains | N/A | Host-chain gas | - |
+| <lex data-category="Yearn Ecosystem">Yearn</lex> | DeFi protocol (no own chain) | Ethereum + host chains | N/A | Host-chain gas | YFI |
+| <lex data-category="zkSync Era Ecosystem">zkSync Era</lex> | Ethereum ZK rollup / Elastic Chain | Ethereum + ZK validity proofs | zkSync sequencer/operator | ETH | ZK |
+| <lex data-category="ZkSync Ecosystem">ZkSync</lex> | Ethereum ZK rollup / Elastic Chain | Ethereum + ZK validity proofs | zkSync sequencer/operator | ETH | ZK |
+| <lex data-category="Zora Ecosystem">Zora</lex> | Ethereum OP Stack L2 | Ethereum + OP rollup/fault-proof assumptions | Zora sequencer | ETH | - (ZORA is ecosystem token) |
+
+
+</details>
+
+## Portfolios
+
+TODO
+
+<details>
+<summary> List of portfolios</summary>
+
+| Portfolio category | Current identity | Investor type | Status (Aug 2026) | Typical exposure / stage | Main focus | Why it is distinctive / how to interpret the tag |
+| --- | --- | --- | --- | --- | --- | --- |
+| <lex data-category="1Confirmation Portfolio">1Confirmation</lex> | 1confirmation | Crypto-native VC | Active | Early-stage venture | Open networks, consumer crypto, DeFi, markets, infrastructure | Focused on decentralization; concentrated early bets and founder support. |
+| <lex data-category="a16z Portfolio">a16z</lex> | a16z crypto | Crypto arm of a large generalist VC | Active | Pre-seed/seed through growth; accelerator | Infrastructure, stablecoins, DeFi, consumer, governance, AI × crypto | Very large platform team; combines capital with research, engineering, policy and go-to-market support. |
+| <lex data-category="Alameda Research Portfolio">Alameda Research Brands</lex> | Alameda Research | Proprietary trading firm + venture investor | Defunct / bankruptcy estate | Historically liquid tokens, market-making and venture/token deals | Trading, Solana ecosystem, DeFi, exchanges, infrastructure | Historical portfolio category only; Alameda entered bankruptcy with FTX in November 2022. |
+| <lex data-category="Animoca Brands Portfolio">Animoca Brands</lex> | Animoca Brands / Animoca Ventures | Strategic operating company + venture investor | Active | Seed through growth; strategic/token investments | Gaming, digital ownership, NFTs, identity, consumer Web3, AI | Unusually broad portfolio and strong operating exposure through owned game/Web3 businesses. |
+| <lex data-category="Arrington XRP Capital Portfolio">Arrington XRP Capital</lex> | Arrington Capital | Crypto multi-strategy hedge fund + venture investor | Active; name evolved from Arrington XRP Capital | Private venture, tokens and liquid strategies | L1/L2, DeFi, infrastructure, AI/agents, cross-chain | Not XRP-only today; current firm is broadly multi-chain and multi-strategy. |
+| <lex data-category="Blockchain Capital Portfolio">Blockchain Capital</lex> | Blockchain Capital | Specialist crypto venture-capital firm | Active | Multi-stage venture; seed through growth | Infrastructure, DeFi, CeFi, consumer, security, protocols | One of the earliest dedicated crypto VC firms; also pioneered a tokenized venture fund (BCAP). |
+| <lex data-category="BoostVC Portfolio">BoostVC</lex> | Boost VC | Pre-seed VC / accelerator | Active | Primarily pre-seed | Crypto plus frontier/deep technology | Accelerator-style investor known for backing technically unusual projects very early. |
+| <lex data-category="Circle Ventures Portfolio">Circle Ventures</lex> | Circle Ventures | Corporate venture arm of Circle | Active | Mostly early stage; can invest later | Stablecoins, payments, on-chain finance, infrastructure, programmable commerce | Strategic value comes from potential integration with Circle and USDC infrastructure. |
+| <lex data-category="Coinbase Ventures Portfolio">Coinbase Ventures</lex> | Coinbase Ventures | Corporate venture arm of Coinbase | Active | Earliest stages, with follow-ons | Broad cryptoeconomy: L1/L2, DeFi, wallets, developer tools, consumer, NFTs | Strategic investor with exchange, custody, distribution and developer-infrastructure reach. |
+| <lex data-category="Coinfund Portfolio">Coinfund</lex> | CoinFund | Crypto-native venture-capital firm | Active | Primarily venture / early-stage partnerships | On-chain finance, infrastructure, payments, AI, decentralized networks | Research-heavy crypto specialist; its separate 250 Digital business was spun out for acquisition by Franklin Templeton in 2026. |
+| <lex data-category="CMS Holdings Portfolio">CMS Holdings</lex> | CMS Holdings | Principal investment firm | Active | Liquid and illiquid tokens plus selective equity / early venture | DeFi, trading, infrastructure, L1/L2, crypto-native applications | Invests its own/principal capital and is closer to a hybrid trading/investment shop than a classic LP-funded VC. |
+| <lex data-category="DCG Portfolio">DCG</lex> | Digital Currency Group (DCG) | Crypto holding company + investor/operator | Active | Seed, venture, token launches, growth, late stage and public markets | Crypto infrastructure, asset management, exchanges, mining, wallets, funds | Combines investment activity with ownership/operation of major crypto businesses; broader than a conventional VC fund. |
+| <lex data-category="DeFiance Capital Portfolio">DeFiance Capital</lex> | DeFiance Capital | Crypto-native investment / asset-management firm | Active | High-conviction private and token investments | DeFi, infrastructure, gaming, digital assets | Strong on-chain research orientation and historically concentrated exposure to crypto protocols. |
+| <lex data-category="DragonFly Capital Portfolio">DragonFly Capital</lex> | Dragonfly | Crypto venture / investment fund | Active | Seed to Series B and beyond | Infrastructure, stablecoins, DeFi, consumer, protocols, global crypto | Designed as a globally oriented crypto-native fund, especially bridging U.S./Asia ecosystems. |
+| <lex data-category="DWF Labs Portfolio">DWF Labs</lex> | DWF Labs | Market maker + proprietary trading firm + venture investor | Active | Early-stage/strategic token and venture deals | DeFi, exchanges, AI, memecoins, infrastructure, liquidity | Distinctive because investment, OTC trading and market-making can coexist within the same group. |
+| <lex data-category="eGirl Capital Portfolio">eGirl Capital</lex> | eGirl Capital | Pseudonymous investment collective / syndicate | Active | Angel/seed, private tokens and liquid positions | Crypto-native protocols, DeFi, infrastructure, culture | Internet-native collective rather than a traditional institutional VC; members describe deploying capital collectively/individually. |
+| <lex data-category="Electric Capital Portfolio">Electric Capital</lex> | Electric Capital | Venture-capital firm + crypto research organization | Active | Early and multi-stage venture | Infrastructure, DeFi, developer tooling, security, AI, on-chain finance | Known for data-driven technical research, especially its developer-activity reports, alongside investing. |
+| <lex data-category="Exnetwork Capital Portfolio">Exnetwork Capital</lex> | Exnetwork Capital | Hybrid venture fund + incubator / idea lab | Publicly active | Primarily early-stage / incubation | Web3 infrastructure, DeFi, gaming, decentralized applications | Combines capital, incubation and a broad network of crypto operators rather than acting only as a passive investor. |
+| <lex data-category="Fabric Ventures Portfolio">Fabric Ventures</lex> | Fabric Ventures | Venture-capital firm | Active | Pre-seed through growth | Web3, fintech, distributed computing, AI, robotics / machine economy | Originally strongly Web3-focused; current thesis is broader around the “machine economy.” |
+| <lex data-category="Fenbushi Capital Portfolio">Fenbushi Capital</lex> | Fenbushi Capital | Web3 asset manager + venture investor | Active | Early/multi-stage venture and digital-asset strategies | Infrastructure, DeFi, CeFi, security, tooling, consumer | One of Asia’s earliest blockchain-focused institutional investors and an early Ethereum backer. |
+| <lex data-category="Framework Ventures Portfolio">Framework Ventures</lex> | Framework Ventures | Venture-capital firm | Active | Primarily early-stage; often leads rounds | DeFi, infrastructure, gaming, crypto applications and emerging tech | High-conviction, hands-on model with unusually wide possible check sizes. |
+| <lex data-category="Galaxy Digital Portfolio">Galaxy Digital</lex> | Galaxy Ventures / Galaxy Digital | Corporate/strategic venture arm inside a diversified digital-asset firm | Active | Early-stage venture | Software infrastructure, financial applications, protocols, consumer crypto | Portfolio companies can draw on Galaxy’s trading, asset management, banking, validator and institutional network. |
+| <lex data-category="Hashkey Capital Portfolio">Hashkey Capital</lex> | HashKey Capital | Digital-asset manager + venture investor | Active | Venture plus liquid / regulated asset-management products | Infrastructure, institutional services, data, AI, consumer, on-chain finance | Strong Asia/Hong Kong institutional and regulatory orientation; combines VC with liquid products. |
+| <lex data-category="Huobi Capital Portfolio">Huobi Capital</lex> | HTX Ventures (successor branding) | Exchange-linked corporate venture / incubation arm | Active under HTX Ventures branding | Full-cycle strategic venture and incubation | Blockchain infrastructure, DeFi, Web3 applications, ecosystem projects | The old Huobi Capital/Huobi Ventures category is best read historically; the current investment arm is HTX Ventures. |
+| <lex data-category="Kenetic Capital Portfolio">Kenetic Capital</lex> | Kenetic Capital | Crypto venture-capital firm | Active | Early-stage | Data, infrastructure, enterprise blockchain, trading and finance | Asia-rooted but globally oriented; investing in blockchain since 2016. |
+| <lex data-category="LedgerPrime Portfolio">LedgerPrime</lex> | MNNC Group is the main successor to the former LedgerPrime team | Historical crypto hedge fund + venture investor | LedgerPrime wound down; successor team active under new name | Historically liquid strategies plus venture/token investments | LedgerPrime became tied to Alameda/FTX and shut down after the 2022 collapse; former staff rebooted as MNNC Group in 2024. |
+| <lex data-category="Multicoin Capital Portfolio">Multicoin Capital</lex> | Multicoin Capital | Crypto hedge fund + venture-capital firm | Active | Liquid/public tokens plus early-stage venture | Execution platforms, DeFi, stablecoins, payments, DePIN, AI, ZK/FHE, applications | Explicitly invests across both public token markets and private venture, with a thesis-driven approach. |
+| <lex data-category="OKX Ventures Portfolio">OKX Ventures</lex> | OKX Ventures | Corporate venture arm of OKX | Active | Strategic venture across early and growth opportunities | Infrastructure, L2, DeFi, Web3, NFTs, metaverse, trading/financial protocols | Exchange-linked strategic investor with ecosystem, liquidity and distribution relationships. |
+| <lex data-category="Pantera Capital Portfolio">Pantera Capital</lex> | Pantera Capital | Crypto asset manager + venture-capital firm | Active | Venture equity, early-stage tokens and liquid tokens | Broad blockchain/crypto: protocols, infrastructure, applications and digital assets | One of the first U.S. institutional managers devoted exclusively to blockchain; spans venture and liquid strategies. |
+| <lex data-category="Paradigm Portfolio">Paradigm</lex> | Paradigm | Frontier-technology venture / research firm | Active | Day-zero / earliest-stage through venture | Crypto, AI, robotics and other frontier technologies | Still deeply crypto-technical, but broadened beyond crypto; research, engineering and open-source software are core to its model. |
+| <lex data-category="PetRock Capital Portfolio">PetRock Capital</lex> | PetRock Capital | Crypto venture-capital firm | Public site active; recent activity less transparent | Early-stage venture / token investments | Web3 infrastructure, DeFi, metaverse and unconventional crypto concepts | Asia-Pacific-oriented, highly hands-on investor with emphasis on token design, growth and liquidity support. |
+| <lex data-category="Polychain Capital Portfolio">Polychain Capital</lex> | Polychain Capital | Crypto investment firm / hedge + venture style | Active | Actively managed digital assets plus private protocol/token investments | Blockchain protocols, infrastructure and cryptoassets | Historically important for treating protocol tokens as an institutional investable asset class, not only startup equity. |
+| <lex data-category="Polygon Ventures Portfolio">Polygon Ventures</lex> | P2 Ventures (formerly Polygon Ventures) | Independent early-stage Web3 VC, originally ecosystem-linked | Active under P2 Ventures branding | Early-stage venture | Multichain Web3 infrastructure and applications | The CoinGecko category preserves the old Polygon Ventures name; the organization now operates as P2 Ventures. |
+| <lex data-category="Placeholder Ventures Portfolio">Placeholder Ventures</lex> | Placeholder | Crypto-native venture-capital firm | Active | Early-stage companies and networks | Decentralized networks, protocol design, infrastructure, on-chain finance | Thesis-driven investor focused on decentralizing data, wealth and power; strong emphasis on cryptoeconomics/governance. |
+| <lex data-category="Standard Crypto Portfolio">Standard Crypto</lex> | Standard (formerly Standard Crypto) | Frontier-technology venture-capital firm | Active | Very early-stage venture | Crypto/decentralization, cryptography, AI and adjacent frontier technology | Started as crypto-specialist Standard Crypto and has broadened its brand/thesis while retaining deep crypto expertise. |
+| <lex data-category="Three Arrows Capital Portfolio">Three Arrows Capital</lex> | Three Arrows Capital (3AC) | Historical crypto hedge fund + venture/token investor | Defunct / in liquidation | Historically liquid directional trades, leveraged positions and venture/token deals | Legacy portfolio category only; 3AC collapsed in 2022 and entered court-supervised liquidation. |
+| <lex data-category="USV Portfolio">USV</lex> | Union Square Ventures (USV) | Generalist venture-capital firm with a major crypto thesis | Active | Mostly early-stage venture | Open protocols, decentralized networks, crypto infrastructure, fintech and internet applications | Not a crypto-only fund; important historically for treating blockchains as open protocol networks within a broader internet thesis. |
+| <lex data-category="VBC Ventures Portfolio">VBC Ventures</lex> | VBC Ventures | Crypto venture investor | Legacy / current public activity is limited or unclear | Historically early-stage/token venture | Blockchain projects, DeFi, infrastructure and GameFi | Public portfolio databases remain available, but recent first-party information is sparse; treat the category primarily as historical unless independently verified. |
+| <lex data-category="Winklevoss Capital Portfolio">Winklevoss Capital</lex> | Winklevoss Capital | Family-office / venture investor | Active | Early-stage and strategic direct investments | Crypto plus AI, consumer, enterprise, energy and space | Crypto is one investment frontier rather than the entire mandate; early exposure includes Bitcoin, Ethereum, Gemini and Filecoin. |
+| <lex data-category="World Liberty Financial Portfolio">World Liberty Financial</lex> | World Liberty Financial / Macro Strategy token reserve | DeFi company/protocol treasury — not a conventional VC fund | Active | Treasury purchases / strategic token holdings rather than startup stages | Bitcoin, Ethereum, DeFi tokens, stablecoin ecosystem and tokenized finance | CoinGecko’s “portfolio” tag mainly reflects tokens held or strategically accumulated by WLF; interpret it as treasury exposure, not proof that WLF venture-funded each project. |
+| <lex data-category="YZi Labs Portfolio"><lex data-category="YZi Labs (Prev. Binance Labs) Portfolio">YZi Labs</lex></lex> | YZi Labs (formerly Binance Labs) | Large strategic investment vehicle / accelerator | Active | Direct investment, incubation/residency, venture and strategic rounds | Web3, AI, biotech, stablecoin payments, DeFi, robotics / physical AI | Former Binance Labs brand; now broader and more independent in mandate, while retaining strong roots in the Binance/BNB ecosystem. |
+
+</details>
+
+
+## Zero-knowledge proofs
+
+<lex data-category="Zero Knowledge Proofs"><lex data-category="Zero Knowledge (ZK)"></lex></lex>
+
+Motivation: Verify the vality of a statement without performing all the computations required to get to the original statement. This may be useful to improve the EVM state transition function: only a few nodes execute the transactions, and then provide the proofs to all other nodes -> "Centralization"
+
+Three principles:
+- Completeness: a honest prover with a valid solution can produce an acceptable proof.
+- Soundness: a prover who does not have a valid solution should not be able to convince a verifier.
+- Zero knowledge: the proof reveals nothing about the solution except the fact that a valid solution exists.
+
+The witness = the secret information that proves the statement is trusted.
+
+Interactive and simple protocol:
+Requires decomposing the validity of the solution into a set of local constraints in such a way that if all local constraints are satified, the verifier knows that the prover knows the solution. In each round, the prover proves to the verifier that one local constraint is satisfied (the prover does not know which one upfront).
+Each round can be summarized as follows:
+- The prover injects randomness into the solution, obtaining a temporary, modified solution. Randomization should be uncorrelated fromone round to the other to prevent the verifier from reconstructing the solution.
+- The prover generates a commitment and sends it to the verifier. For example, by constructing a Merkle tree from the modified solution (with random salts), and sending the Merkle root to the verifier.
+- The verifier sends a random challenge (the query) to check that a one local constraint is satisfied. Because the query is random and because of the commitment, the prover can not invent a solution satisfying the constraint without being caught.
+- The prover sends a response to the challenge (a proof), consisting of the small part of the modified solution needed to verify the local constraint + their salts + the Merkle verification path.
+- The verifier checks the validity of the proof.
+The process repeated until statistical significance.
+
+Detailed example for the partitioning problem: [https://www.shirpeled.com/2018/09/a-hands-on-tutorial-for-zero-knowledge.html](https://www.shirpeled.com/2018/09/a-hands-on-tutorial-for-zero-knowledge.html)
+
+Fiat-Shamir heuristic: protocol that can turn an interactive ZK proof system into a noninteractive one.
+Only two rounds:
+- The prover generates a `commitment`.
+- The prover computes `challenge = hash(commitment || public_inputs)`.
+- The prover computes a response to the `challenge` (`proof`).
+- The prover generates a `new_commitment`.
+- The prover computes `new_challenge = hash(new_commitment || proof || commitment || public_inputs)`
+- The prover computes a response to the `new_challenge` (a `new_proof`).
+- The prover repeats the logic as many times as needed for statistical significance.
+- The prover sends the commitments, challenges and responses to the verifier.
+- The verifier checks everything.
+
+These approaches only work for specific problems that can be decomposed in a particular way (e.g., the well-known partitioning problem).
+
+#### SNARK (succinct noninteractive arguments of knowledge)
+
+Nice explanation: [https://ebuchman.github.io/pdf/snarks.pdf](https://ebuchman.github.io/pdf/snarks.pdf)
+
+Relies on a trusted setup based on multiparty computation: many parties generate a different secret (called "toxic waste"), compute the proving and verification keys, and delete their initial secrets. Only one party needs to actually deletes their toxic waste for the protocol to work.
+
+Circuit = a way to encode the computions into a manageable form.
+
+#### STARK (scalable transparent argument of knowledge)
+
+Trusted setup is no longer needed.
+
+### zk-VM (zk Virtual Machines)
+
+Example: SP1, RISC Zero
+
+### Tornado Cash
+
+- Deposit:
+  - The depositor generates the random 31-bytes nullifier $n$, the random 31-bytes secrets $s$, and computes the commitment `C = hash(n, s)`, using the Perderson hash function (Baby Jubjub elliptic-curve point).
+  - The depositor sends $C$ to the smart contract, as well as the funds.
+  - The smart contract inserts $C$ into its Merkle tree, and updates the root $R$. It also keeps track of the history of recent Merkle roots, to prevent invalidating upcoming proofs whenevernew deposits arrive. The Merkle tree is binary, has a depth of 20 and uses a MiMC sponge for hashing. The Merkle tree structure will be needed to efficiently prove that the commitment derived from the secret note is one of the commitments previously deposited into this pool.
+- Withdrawal:
+  - The client computes the nullifier `N = hash(n)` and makes it public.
+  - The zk proof consists in proving that the client knows a $(n, s)$ couple that generated a leaf in the Merkle tree.
+  - The zk proof has the following public inputs: $(R, N, B, L, f)$, where $B$ is the recipient address, $L$ the relayer and $f$ the relayer fee.
+  - The zk private witness is made of: $(n, s, E, D)$, where $E$ is the correct Merkle path, and $D$ is the corresponding binary vector indicating how to select children during tree traversal. while $E$ and $D$ can be inferred from $C$ (since the tree is public), a malicious observer would not be able to figure out which $C$ the prover used upon deposit. $E$ and $D$ must stay private, otherwise the prover can be re-identified (i.e., matched with a depositor). Indeed, the depositor is linked to $C$, which can be recovered from $E$ or $D$.
+  - The client generates a Groth16 proof. The proof established:
+  $$
+  \begin{aligned}
+  & \exists n, s, E, D: \\
+  C & = \text{hash}(n ∥ s) \\
+  R & = \text{MerkleRoot}(C, E, D) \\
+  N & = \text{hash}(n) \\
+  \end{aligned}
+  $$
+  - The client sends the proof to a relayer off-chain, which will take care of paying the gas upon sending the proof to the tumbler's smart contract. This is useful because the withdrawal address is typically brand new with 0 funds.
+
+<ResponsiveImage
+  folder="/images/crypto"
+  filename="tornado-cash-explanation.svg"
+  alt="Tornado Cash event-trace diagram"
+/>
+
+### Other mixers
+
+Custodial (traditional) Bitcoin mixers have faced substantial law enforcement:
+- ChipMixer, taken down in 2023.
+- Helix, TODO
+- Samourai Wallet, TODO
+
+Non-custodial system for Bitcoin: CoinJoin. Each transaction is validly signed by every participant.
+
+## Law enforcement
+
+https://arxiv.org/abs/2005.14051
+
+Binance, Changpeng Zhao
+
+## Scalability
+
+Scalability trilemma: improving one of decentralization, security or scalability degrades the others.
+Example: improving speed -> larger blocks -> only large servers can handle them -> centralization (as in Solana)
+
+High gas fees during peak times (network congestion).
+Solutions:
+- L2 solutions
+- EIP-4844 (proto-danksharding)
+
+## TODO
+
+ENS (Ethereum Name Service) = decentralized naming system mapping human-readable names (e.g., vitalik.eth) to records such as Ethereum addresses, Bitcoin addresses, website URLs, email addresses, etc. 
+
+ENS registry = central coordination smart contract. It selects which registrar (contract) to call. Etc.
+
+---
+
+
+| Abbrevation/acronym | Full spelling | Meaning |
+| :------------------ | :------------ | :------ |
+| tx | Transaction | TODO |
+| zk | Zero-knowledge | TODO |
+| L1 | Layer 1 | TODO |
+| L2 | Layer 2 | TODO |
+
+Nice references:
+- https://public.bnbstatic.com/static/files/research/industry-map-sep25.pdf
+- https://www.binance.com/en/academy/glossary
+- Ethereum's "Yellow Paper": https://ethereum.github.io/yellowpaper/paper.pdf
+- https://github.com/ahmet/awesome-web3
+
+## 
+
+## Tokens
+
+<lex data-category="Token"></lex>
+
+- `library` keyword to make libraries stateless -> prevent vulnerabilities
+- ERC-20: the standard for fungible tokens. Extensions: burning system, voting system
+- Tokens sent to contract addresses which do not have ERC-20 capabilities are lost forever. Instead, the contract should have the ERC20 instance should be set in the constructor.
+- The "approve" ERC20 workflow allows, for example, to allow an other contract (e.g. a faucet) to transfer tokens, even when the addresses of the token contract and the faucet contract are different.
+- In ERC20, "transactions" only changes the state of the token contract, not the state of the recipient address -> It can be tricky for wallets to keep track of token balances. Anyway, one does not want to track all balances because they are a lot of spam/junk tokens.
+- ERC-1967 proxy to move the contract's logic to another address. Allows changing the code or fixing bugs over time: https://eips.ethereum.org/EIPS/eip-1967. Storage slot for the implementation contract address is hardcoded (derived from a hash) to prevent any collision with other variables in the code.
+- ERC-7201: namespaced storage layouts to prevent collisions when migrating between delegate contracts.
+- ERC-2612: addition to ERC-20, allows token transfers without interacting with the blockchain (therefore avoiding gas fees). Only creates the signature, by signing off-chain messages. The actual transaction is performed by someone else. Third parties pay for the gas fees in exchange for reimbursement in ERC-20 tokens.
+- ERC-223: prevents inadvertently sending tokens to contracts. It uses the `extcodesize` function to distinguish between EOAs and contracts. It gives the bytecode size, which should be 0 for EOAs. This assumption is no longer true nowadays.
+- ERC-777: compatible with ERC-20. They introduce "hooks", functions called during the token transfer. The sender's hook executes, then the transfer occurs, then the receiver's hook executes. Transactions are atomic, contrary to ERC-20 where they are made in 2 stages. It also introduces an operator mechanism: operators are authorized addresses which can send and burn tokens on their behalf. Introduces severe risks of reentrancy or DoS attacks.
+- ERC-721: the standard for <lex data-category="NFT">non-fungible tokens (NFT)</lex>. Builds on ERC-165. Metadata (name, description, image)is decentralized by mapping the token ID to a URI (uniform resource identifier), typically an IPFS (Inter-Planetary File System) for decentralized storage. Extension: system of royalty payments.
+- ERC-1155: Multitoken standard. Builds on ERC-165. Can manage both fungible (e.g., gold in a game) and non-fungible (e.g., unique swords in a game). Each token type has its own unique ID. It enables batch operations, therefore reducing gas costs. Safety mechanism to prevent locking tokens: the receiver should implement the IERC1155Receiver interface. Extensions: burnable tokens, pausable contracts.
+- ERC-1820: greater flexibility for decentralized systems.
+- Standards are meant to encourage interoperability between contracts. The standards are meant to be descriptive rather than prescriptive
+- EIP-165 defines a method for contracts to announce the interfaces they implement. Inherits from a base class, such as OpenZeppelin's ERC-165, and overrides the `supportsInterface` method.
+
+<lex data-category="Oracle">Oracles</lex>: everything should be deterministic on the blockchain (otherwise consensus would be impossible) -> network nodes could only include transactions that give them an advantage (e.g., in a gambling game) -> we need external info (which can be unverified sources) -> oracles solve that issue.
+Oracles bridge the gap between the off-chain world and the contracts. Oracles provide random numbers, the price of gold, the results of football games, damage verification for insurance contracts, etc.
+- Immediate-read oracles (oracle contract): data can be accessed with 0 gas cost by direct lookup in the oracle contract storage.
+- Publish-subscribe oracles (oracle contract + off-chain daemon): when data is expected to change. Similar to RSS feeds and WebSub. Implemented using an off-chain daemon. Examples: keeping track of interest rates.
+- Request-response oracles (oracle contract + off-chain daemon + off-chain data fetcher): when data is large to be stored in smart contracts, and when users only need to get a small portion of it.
+Chainlink VRF (verifiable random function): the oracle uses its private key to generate a random number off-chain, and then publishes it with the corresponding proof on-chain. The public key can be used to verify that the "random" number has not been manipulated.
+Computation oracles can be used to run arbitrary functions.
+ZK coprocessors (Lagrange and Brevis): enable running expensive computations off-chain while ensuring on-chain verification.
+Decentralized oracles with on-chain data aggregation systems. Example: Chainlink protocol, SchellingCoin protocol (rewards reporters that report values close to the median).
+
+<lex data-category="Cross-chain Communication"><lex data-category="Cross-Chain">Cross-chain messaging protocols</lex></lex>:
+- LayerZero: The LayerZero endpoint (a smart contract) in chain A sends the data to an off-chain relayer and an off-chain oracle, which send the data to a LayerZero endpoint in chain B.
+- Wormhole: enable transfers between Solana, Ethereum, Binance Smart Chain, Hyperliquid and Avalanche. Uses a network of off-chain guardians to improve security.
+- CCIP (Chainlink's Interoperability Protocol): uses decentralized oracles. Locks/burns tokens on the source chain, and unlocks/mints tokens on the destination chain.
+- CCTP (Chainlink's Transfer Protocol): bridges USDC between different chains.
+- Cosmos: implements the Inter-Blockchain Communication (IBC) protocol.
+- Polkadot: secures parachains via a shared set of validators in the Relay Chain
+
+## Decentralized applications (DApps)
+
+<lex data-category="DApp">DApps</lex>
+
+Decentralized backend = blockchain (only to store important info)
+- Blockchain indexer: tool that lets developers query and analyze data stored on the blockchain in a fast and efficient way. Database-like structure. Example: IPFS
+- Store a Merkle tree off-chain, and store the tree root in the contract.
+
+```bash
+npm install -g corepack
+yarn
+npx create-eth@latest -e erc-20
+# Choose hardhat as solidity framework
+```
+
+Start a local blockchain:
+```bash
+yarn chain
+```
+Create a new terminal.
+
+Deploy on the blockchain:
+```bash
+yarn deploy
+```
+
+Starting the frontend:
+```bash
+yarn start
+```
+
+Burner wallet: an auto-generated address whose private key is temporarily saved in your web browser. Useful for development.
+
+
+#### Deploy to Ethereum
+```bash
+yarn generate  # Generate a deployer account
+# Choose a password (optional)
+```
+Next The account needs to be funded. To deploy:
+```bash
+yarn deploy --network mainnet
+```
+In `scaffold.config.ts`, replace `targetNetworks: [chains.hardhat],` by `targetNetworks: [chains.mainnet],`
+
+Use Etherscan to verify the contracts:
+```bash
+yarn verify --network mainnet
+```
+
+#### Publish the DApp (centralized solution)
+
+Create a Vercel account.
+
+Deploy to Vercel:
+```bash
+$ yarn vercel:yolo
+```
+
+#### Publish the DApp (decentralized solution)
+
+`Eth.limo` acts as a reverse proxy for ENS names and IPFS contents.
+Domain names are of the `*.eth.limo` form.
+Only static files are currently supported.
+Requirements: buy an ENS and link it to the IPFS contenthash of your frontend.
+
+Deploy to IPFS:
+```bash
+yarn ipfs
+```
+
+Build your own IPFS node: https://www.bgipfs.com/
+
+## Decentralized Finance (DeFi)
+
+<lex data-category="Decentralized Finance (DeFi)"><lex data-category="DeFi"></lex></lex>
+
+Fiat currencies (+ barries to entry) -> TradFi
+Cryptocurrencies -> DeFi
+
+<CryptoIcon name="usdc" /> USDC: a token whose value is pegged to one dollar, and natively issued on the Arbitrum chain.
+USDC.e: a token transferred from another chain to Arbitrum (USDC risk + risks related to the bridging process).
+
+<lex data-category="Centralized Exchange (CEX) Token">Centralized exchange (CEX)</lex>: maintains accounts and controls the trading system. Examples: Binance, Coinbase, Kraken, OKX, Gemini, Bitstamp. When you buy 3 ETH on Binance, it happens off-chain, as it only results in a database change on Binance's side: nothing happens on the user's Ethereum account, as Binance takes care of holding a reserve on its own wallet.
+<lex data-category="Decentralized Exchange (DEX)"><lex data-category="Decentralized Exchange (DEX) Token"><lex data-category="DEX">Decentralized exchange (DEX)</lex></lex></lex>: platform that uses smart contracts to manage transactions automatically. Examples: Uniswap, Curve, PancakeSwap, dYdX, SushiSwap, Balancer.
+
+Order book model: difficult to use on-chain due to the blockchain speed.
+<lex data-category="AMM"><lex data-category="Automated Market Maker (AMM)">Automated market maker (AMM) model</lex></lex>: prices are determined by the ratio of tokens in the liquidity pools.
+$$
+\Delta y = \frac{y \Delta x}{x + \Delta x},
+$$
+where $x$ and $y$ are the pool sizes, while $\Delta x$ and $\Delta y$ are the input and output amounts, respectively.
+
+<details>
+<summary>Mathematical details</summary>
+
+If the trader deposits $\Delta x$ of token X and receives $\Delta y$ of token Y in exchange, the product of the two quantities should remain constant:
+$$
+\begin{aligned}
+& & xy & = (x + \Delta x) (y - \Delta y) = k \\
+& \iff \quad & \Delta y & = y - \frac{xy}{x + \Delta x} \\
+& & & = \frac{yx + y \Delta x - xy}{x + \Delta x} \\
+& & & = \frac{y \Delta x}{x + \Delta x}, \\
+\end{aligned}
+$$
+for some constant $k$.
+</details>
+
+Uniswap uses the AMM model. xy = constant, where x and y represent the quantities of the two tokens in the pool. -> Price = ratio of quantities.
+If prices were constant instead, arbitrageurs would have an incentive to trade against the pool until one side of the reserves is exhausted (which depends on which one is overpriced/underpriced). Same problem with linear prices. -> AMM model and its hyperbolic curve are more suitable (the asymptotic behavior makes it secure: slippage discourages traders from depleting the pool).
+
+Impermanent loss: buy -> sell -> loss due to price difference
+
+Lending market: loan must be overcollaterallized (due to risks of default). Interest rates are determined by the market (borrowers/lenders). If the value of the collateral falls below a certain threshold, the platform's smart contracts initiate a liquidation process. Oracles are needed for securing lending markets (to prevent flash-loan attacks from people manipulating prices on a DEX).
+
+Flash loans
+
+Combining a lending market with a DEX enables more complex financial instruments, such as shorting.
+
+Using the lending market instead of your own money directly can be untaxable in many jurisdictions.
+
+<lex data-category="Stablecoin">Stablecoins</lex>
+- Fiat-collateralized stablecoins: backed by reserves of fiat currencies. Examples: <CryptoIcon name="usdt" /> USDT, <CryptoIcon name="usdc" /> USDC
+- Cryptocollateralized stablecoins: backed by other currencies. Example: <CryptoIcon name="dai" /> DAI (Ethereum overcollateralization stabilizes DAI)
+- Algorithmic stablecoins: price is adjusted automatically based on market demand. Example: <CryptoIcon name="dai" url="https://altcoinsbox.com/wp-content/uploads/2023/03/terra-logo.webp" /> TerraUSD
+
+<lex data-category="Liquid Staking"><lex data-category="Liquid staking derivatives">Liquid staking</lex></lex>: mechanism that allows users to stake their cryptocurrency assets in a PoS network while retaining the liquidity of those assets. PoS network: uses Proof of Stake to decide who gets to validate transactions and create new blocks. Slashing: when validators break the rules and lose part of their stake.
+Example: Lido is a protocol that lets people stake ETH while emitting a transferable (derivative) token representing the stacked position, called stETH. How it works: (i) You deposit ETH into Lido, which triggers smart contracts. (ii) Lido mixes it with deposits from other users into a large pool. (iii) ETH is deposited to nodes running Ethereum validators. (iv) Those validators earn staking rewards or incur penalties. (v) You receive stETH, representing your portion of the pooled ETH, including accumulated rewards and penalties.
+stETH -> Lido's stacking protocol
+<CryptoIcon name="ldo" url="https://assets.kraken.com/marketing/web/icons-uni-webp/s_ldo.webp" /> LDO -> Lido's governance protocol: protocol parameters, treasury spendings, smart contract upgrades, etc. -> Impacts stETH indirectly.
+
+<lex data-category="Real World Assets"><lex data-category="Real World Assets (RWA)">RWAs (real-world assets)</lex></lex>: stocks, bonds, fractions of real estate, fine art, etc. Rely on custodians -> not really decentralized.
+TODO
+
+<lex data-category="Real World Assets Protocols">Real World Assets Protocols</lex>
+TODO
+
+Bridges = specialized protocols that facilitate the transfer of assets/data between different blockchains.
+- Wrapped-token bridges (lock and mint)
+- Mint and burn
+- Liquidity bridges: no new tokens are minted; the bridge already holds tokens on both chains.
+
+## Applications of crypto
+
+### Internet of Things (IoT)
+
+<lex data-category="IoT">IoT</lex> = network of physical objects embedded with sensors, software, and network connectivity
+
+#### Robotics
+
+<lex data-category="Robotics">TODO</lex>
+
+### Gaming
+
+<lex data-category="Gaming (GameFi)">GameFi</lex> is the combination of gaming and blockchain/DeFI. Valhalla is an example of <lex data-category="RPG">Role-Playing Game (RPG)</lex>, set on the Floki Island, in which the player controls a Viking character and uses FLOKI for in-game economy and blockchain-based game assets. Floki has a <lex data-category="Play To Earn">play-to-earn</lex> economy, including battling, earning EXP, trading rare assets, completing quests and participating in PvP. Valhalla is referred to as a <lex data-category="Metaverse">"metaverse"</lex>, since players interact in a persistent shared digital world.
+
+<lex data-category="On-chain gaming">On-chain gaming</lex> is a peculiar type of gaming where game logic, assets, interactions and characteristics are stored directly on a blockchain. In the case of FLOKI, Valhalla runs on opBNB. The rest (3D graphics, animations, music, UI, keyboard inputs) is managed off-chain like regular games.
+
+Examples of <lex data-category="Gaming Blockchains">blockchains</lex> designed specifically for gaming: Ronin, Xai, Oasys, Beam, GalaChain.
+
+#### Governance
+
+ApeCoin (APE) is a gaming utility and governance token, that is not bound to any specific game. It is compatible with Otherside, a game from the same team (Yuga Labs). APE is now also the native gas token of ApeChain.
+
+<lex data-category="Gaming Utility Token">Gaming utility token</lex>: token used for in-game purchases, access to content, events and rewards.
+
+<lex data-category="Gaming Governance Token">Gaming governance token</lex>: token allowing holders to participate in the development and decision process of the gaming ecosystem.
+
+### Artificial intelligence
+
+AKEDO is an AI-assisted game-creation system, where user describe their game in natural language and AI agents are used off-chain to generate and test the game. A cryptocurrency, called AKE, is then used for payments, rewards, asset ownership and game monetization.
+
+<lex data-category="Artificial Intelligence (AI)">TODO</lex>
+
+<lex data-category="AI Applications">TODO</lex>
+
+<lex data-category="AI Framework">TODO: AI16Z, Swarms</lex>
+
+<lex data-category="AI & Big Data">TODO</lex>
+
+<lex data-category="Generative AI">TODO</lex>
+
+AI can also be used to perform decentralized finance <lex data-category="DeFAI">(DeFAI)</lex>. An example is INFINIT, where DeFAI and trading strategies can be implemented with <lex data-category="AI Agents">AI agents</lex>. In INFINIT, AI agents are the product, while in Ethena for example, these agents are just additional users of the infrastructure.
+
+## The EVM
+
+EVM: stack-based architecture (max 1024 words). Word size = 256 bits. "Single-threaded". Memory = volatile, byte-addressable data structure. Storage = persistent key-value data structure. Calldata = immutable data structure that always contains the bytes sent as input to the next call frame
+EVM is a quasi-Turing-complete state machine: "quasi" because all execution processes are limited to a finite number of computational steps by the amount of gas available.
+
+Examples of virtual machines:
+JVM -> Java, Scala
+.NET -> C#
+EVM -> Solidity
+Solana VM, Wasm VM, Cairo VM, Move VM, etc.
+
+EVM implementations: Go-ethereum EVM (Go), Execution-spec EVM (Python), Revm, Evmone (C++), Besu EVM (Java), Nethermind EVM (C#)
+
+Sandboxed copy of the Ethereum world state -> execution -> if success, the real-world state is updated to match the sandboxed version.
+Sandboxed copy occurs at every recursive call.
+All Ethereum nodes have to compute and maintain the last state by reexecuting all the transactions it contains.
+Not great -> Ethereum will be made stateless in the future. It requires changing: Enshrined proposer-builder separation (ePBS), and Verkle trees.
+
+Merkle tree: hash tree used to efficiently prove that any chunk of the database has not been manipulated.
+The hash of each parent is obtained by hashing the concatenation of the hashes of its children.
+With such data structure, it is cheaper to provide a proof regarding the balance of an address, the result of a transaction, etc.
+Contrary to Bitcoin, the Ethereum state changes constantly, therefore Merkle trees need some adjustements -> modified Merkle-Patricia tries.
+Merkle-Patricia tries: each node has 16 children. To retrieve a value, the key is hex-encoded, and each hex value is used to index children, one level at a time.
+Used to store: state, transactions, receipts (transaction results), storage (smart contract data).
+
+Deployment bytecode = contract initialization + runtime bytecode. Obtained by running `solc --bin contract.sol`
+Runtime bytecode. Obtained by running `solc --bin-runtime contract.sol`
+CREATE instruction: the contract address depends only on the state of the sender.
+CREATE2 instruction: the contract address now also depends on the bytecode hash.
+
+
+- No difference between code and data: everything is just bytes. The distinction appears at runtime. No contract validation at deployment time (non-existing opcodes are not detected -> only at runtime). Introducing a new feature may be a problem if a contract's logic relies on the non-existence of a particular opcode.
+- JUMDEST validation: 0x5b represents the JUMPDEST opcode. When using JUMP or JUMPI, the target destination should be a JUMPDEST. However, 0x5b could also be part of push data -> Runtime analysis for accurate validation -> costly -> a map is created to avoid re-making the analysis everytime (each 0x5b is marked as valid or invalid).
+- "Stack too deep" error: The EVM can rapidly access only the top 16 items of the stack. The addition "a+b+c+d+e+f+g+h+i" does not compile in Solidity because it requires creating 8 intermediate results -> 9+8 > 16.
+EOF (Ethereum Object Format) solves all these issues. It isolates the stack for each function call, introducing the CALLF, RETF and JUMPF opcodes, and a return stack (separate from the original operand stack).
+
+EVM bytecode disassemblers: Ethersplay, Heimdall
+
+---
+
+https://speedrunethereum.com/
+https://buidlguidl.com
+
+Vitalik Buterin's blog: https://vitalik.eth.limo
+
+TEE = trusted execution environments.
+
+---
+
+Protocol Labs -> IPFS and Filecoin
+
+---
+
+To check:
+- Gas (is Remix actually good at estimating gas consumption?)
+- Damage verification for insurance contracts
+
+---
+
+Install foundry, as explained here: https://www.getfoundry.sh/introduction/installation
+```bash
+curl -L https://foundry.paradigm.xyz | bash
+source ~/.bashrc
+foundryup
+forge install OpenZeppelin/openzeppelin-contracts
+```
+
+Create a project:
+```bash
+forge init
+```
+
+Compile the project:
+```bash
+forge build
+```
+
+Run Anvil:
+```bash
+anvil
+```
+
+Deploy locally with Anvil:
+```bash
+forge script script/ContractDeploy.s.sol --broadcast --rpc-url "http://127.0.0.1:8545" --private-key <DEPLOYER_PRIVATE_KEY>
+```
+
+
+
+
+[^1]: Antonopoulos, Andreas M., and Gavin Wood. _Mastering ethereum: building smart contracts and dapps._ O'reilly Media, 2018. <a href="https://github.com/ethereumbook/ethereumbook" target="_blank" rel="noopener noreferrer">https://github.com/ethereumbook/ethereumbook</a>
+[^2]: Wood, Gavin. "Ethereum: A secure decentralised generalised transaction ledger." _Ethereum project yellow paper_ 151.2014 (2014): 1-32. <a href="https://ethereum.github.io/yellowpaper/paper.pdf" target="_blank" rel="noopener noreferrer">https://ethereum.github.io/yellowpaper/paper.pdf</a>
+[^3]: <a href="https://ethereum.github.io/yellowpaper/paper.pdf" target="_blank" rel="noopener noreferrer">https://en.wikipedia.org/wiki/Dogecoin#Elon_Musk_and_Dogecoin</a>

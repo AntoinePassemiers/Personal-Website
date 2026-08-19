@@ -6,13 +6,11 @@ CMC Crypto Awards 2024
 Binance Wallet IDO
 AI Agent Launchpad
 Nomad Capital
-IoT
 Analytics
 Wallet
 US Strategic Crypto Reserve
 DAO
 Social Token
-Animal Memes
 Social Money
 Binance Alpha
 Capital Launchpad
@@ -40,9 +38,6 @@ Yearn Partnerships
 Gaming
 Sports
 Sharing Economy
-AI Memes
-Cross-Chain
-Centralized Exchange (CEX) Token
 Internet Capital Markets
 Web3
 Trading Card Game (TCG)
@@ -50,7 +45,6 @@ Distributed Computing
 X11
 Storage
 Tap To Earn (T2E)
-Hybrid - PoW & PoS
 Gaming Guild
 State Channel
 Substrate
@@ -58,36 +52,26 @@ Synthetics
 Celsius Bankruptcy Estate
 Staking
 VR/AR
-Generative AI
 Medium of Exchange
 Yield Aggregator
 2017/18 Alt season
-Layer 1
 Binance Launchpool
 Derivatives
-Binance HODLer Airdrops
 Launchpad
 Services
 Escrow
 USD Stablecoin
 Research
 Platform
-Binance Alpha Airdrops
 Marketplace
 Play To Earn
-Political Memes
 Equihash
-Decentralized Exchange (DEX) Token
 Interoperability
-Doggone Doggerel
 Identity
 Asset-Backed Stablecoin
-Memes
 Multiple algorithms
 Store Of Value
 BTCfi
-DApp
-AI Agents
 Made in China
 Tokenized Stock
 Fan Token
@@ -100,31 +84,21 @@ Parallelized EVM
 Art
 Tokenized Assets
 Cosmos
-Robotics
 Fiat Stablecoin
-Hardware
 Yield Farming
 Made in America
 FTX Bankruptcy Estate
-IP Memes
 Blake2S
-AI Applications
-Sidechain
-Celebrity Memes
-Startup Memes
 CMC Crypto Yearbook 2024-25
 Neobank
 Media
 Binance Listing
 Quantum-Resistant
-DeFAI
 Moonshot
 Metaverse
 Intent
 Crowdsourcing
-AI & Big Data
 Content Creation
-Hybrid - PoW & DPoS
 Data Availability
 Reputation
 Runes
@@ -140,6 +114,5 @@ Entertainment
 DeFi 2.0
 Binance Launchpad
 Alleged SEC Securities
-Layer 2
 Oracles
 Scrypt

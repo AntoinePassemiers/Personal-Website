@@ -424,32 +424,47 @@ const {
     return undefined;
   }
 
+  function openAncestorDetails(
+    element: HTMLElement,
+  ): void {
+    let parent = element.parentElement;
+
+    while (parent) {
+      if (parent instanceof HTMLDetailsElement) {
+        parent.open = true;
+      }
+
+      parent = parent.parentElement;
+    }
+  }
+
   function scrollBelowNavbar(
     element: HTMLElement,
   ): void {
-    const navbar =
-      document.querySelector<HTMLElement>(
-        "[data-navbar]",
-      );
+    openAncestorDetails(element);
 
-    const navbarHeight =
-      navbar?.getBoundingClientRect()
-        .height ?? 0;
+    requestAnimationFrame(() => {
+      const navbar =
+        document.querySelector<HTMLElement>(
+          "[data-navbar]",
+        );
 
-    const extraSpacing = 16;
+      const navbarHeight =
+        navbar?.getBoundingClientRect()
+          .height ?? 0;
 
-    const targetPosition =
-      window.scrollY +
-      element.getBoundingClientRect().top -
-      navbarHeight -
-      extraSpacing;
+      const extraSpacing = 16;
 
-    window.scrollTo({
-      top: Math.max(
-        0,
-        targetPosition,
-      ),
-      behavior: "smooth",
+      const targetPosition =
+        window.scrollY +
+        element.getBoundingClientRect().top -
+        navbarHeight -
+        extraSpacing;
+
+      window.scrollTo({
+        top: Math.max(0, targetPosition),
+        behavior: "smooth",
+      });
     });
   }
 
