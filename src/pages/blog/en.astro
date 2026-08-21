@@ -3,13 +3,39 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getTagClass } from '../../utils/tags.js';
 import { joinPaths } from '../../utils/url-utils.js';
 
-const modules = import.meta.glob('./**/*.{md,mdx}', { eager: true });
+interface PostFrontmatter {
+  title: string;
+  description: string;
+  date: string | Date;
+  lang?: string;
+  tag?: string;
+}
 
-const posts = Object.entries(modules)
-  .map(([path, module]) => {
-    const frontmatter = module.frontmatter;
+interface BlogPost {
+  title: string;
+  description: string;
+  date: string | Date;
+  lang: string;
+  tag: string;
+  href: string;
+}
+
+/*
+ * Only load the frontmatter from each post.
+ * The blog index does not need the rendered MD/MDX modules.
+ */
+const frontmatters = import.meta.glob<PostFrontmatter>(
+  './**/*.{md,mdx}',
+  {
+    eager: true,
+    import: 'frontmatter',
+  },
+);
+
+const posts: BlogPost[] = Object.entries(frontmatters)
+  .map(([path, frontmatter]) => {
     const slug = path
-      .replace('./', '')
+      .replace(/^\.\//, '')
       .replace(/\/index\.(md|mdx)$/, '')
       .replace(/\.(md|mdx)$/, '');
 
@@ -19,103 +45,392 @@ const posts = Object.entries(modules)
       date: frontmatter.date,
       lang: frontmatter.lang ?? 'en',
       tag: frontmatter.tag ?? 'General',
-      href: joinPaths(import.meta.env.BASE_URL, `blog/${slug}/`)
+      href: joinPaths(
+        import.meta.env.BASE_URL,
+        `blog/${slug}/`,
+      ),
     };
   })
   .filter((post) => post.lang === 'en')
-  .sort((a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf());
+  .sort(
+    (a, b) =>
+      new Date(b.date).valueOf() -
+      new Date(a.date).valueOf(),
+  );
 
-const formatDate = (date) =>
+const formatDate = (
+  date: string | Date,
+): string =>
   new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   }).format(new Date(date));
 
-const tags = [...new Set(posts.map((post) => post.tag))].sort();
+const tags = [
+  ...new Set(posts.map((post) => post.tag)),
+].sort((a, b) => a.localeCompare(b));
 ---
 
-<script>
-  const selectedTags = new Set();
+<BaseLayout
+  title="Blog · Astro Pages Blog"
+  description="All English articles from the Astro Pages Blog."
+  lang="en"
+  alternateHref="/blog/fr/"
+>
+  <main class="blog-index" data-blog-index>
+    <section class="container page-hero">
+      <p class="eyebrow">Blog</p>
 
-  const filterButtons = document.querySelectorAll('[data-tag-filter]');
-  const articles = document.querySelectorAll('[data-post-tags]');
+      <h1>All articles</h1>
 
-  function updateFilters() {
-    articles.forEach((article) => {
-      const tags = article.dataset.postTags
-        .split(',')
-        .map((tag) => tag.trim());
+      <p class="lede">
+        For now, I'm mainly talking about machine learning.
+        Check back later for more content.
+      </p>
 
-      const shouldShow =
-        selectedTags.size === 0 ||
-        tags.some((tag) => selectedTags.has(tag));
+      {
+        tags.length > 0 && (
+          <div
+            class="tag-cloud"
+            aria-label="Available article tags"
+          >
+            {
+              tags.map((tag) => (
+                <button
+                  class={`${getTagClass(tag)} tag-filter`}
+                  type="button"
+                  data-tag-filter={tag}
+                  aria-pressed="false"
+                >
+                  {tag}
+                </button>
+              ))
+            }
+          </div>
+        )
+      }
+    </section>
 
-      article.hidden = !shouldShow;
-    });
+    <section
+      class="container article-list"
+      aria-label="Blog articles"
+      data-article-list
+    >
+      {
+        posts.map((post) => (
+          <a
+            class="article-row"
+            href={post.href}
+            data-post-tags={post.tag}
+          >
+            <div class="article-row__content">
+              <div class="article-meta">
+                <time
+                  datetime={new Date(
+                    post.date,
+                  ).toISOString()}
+                >
+                  {formatDate(post.date)}
+                </time>
+              </div>
 
-    filterButtons.forEach((button) => {
-      const tag = button.dataset.tagFilter;
-      const isSelected = selectedTags.has(tag);
+              <h2>{post.title}</h2>
 
-      button.classList.toggle('is-selected', isSelected);
-      button.classList.toggle('is-muted', selectedTags.size > 0 && !isSelected);
-      button.setAttribute('aria-pressed', String(isSelected));
-    });
-  }
+              <p>{post.description}</p>
+            </div>
 
-  filterButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const tag = button.dataset.tagFilter;
+            <span
+              class={`${getTagClass(post.tag)} article-row__tag`}
+            >
+              {post.tag}
+            </span>
+          </a>
+        ))
+      }
+    </section>
+  </main>
 
-      if (selectedTags.has(tag)) {
-        selectedTags.delete(tag);
-      } else {
-        selectedTags.add(tag);
+  <script>
+    function initializeBlogFilters(): void {
+      const root =
+        document.querySelector<HTMLElement>(
+          '[data-blog-index]',
+        );
+
+      if (!root) {
+        return;
       }
 
-      updateFilters();
-    });
-  });
-</script>
+      /*
+       * Avoid registering duplicate handlers when
+       * Astro client-side navigation is enabled.
+       */
+      if (root.dataset.filtersInitialized === 'true') {
+        return;
+      }
 
-<BaseLayout title="Blog · Astro Pages Blog" description="All English articles from the Astro Pages Blog." lang="en" alternateHref="/blog/fr/">
-  <section class="container page-hero">
-    <p class="eyebrow">Blog</p>
-    <h1>All articles</h1>
-    <p class="lede">
-      For now, I'm mainly talking about machine learning. Check back later for more content.
-    </p>
+      root.dataset.filtersInitialized = 'true';
 
-    <div class="tag-cloud" aria-label="Available article tags">
-      {tags.map((tag) => (
-        <button
-          class={`${getTagClass(tag)} tag-filter`}
-          type="button"
-          data-tag-filter={tag}
-          aria-pressed="false"
-        >
-          {tag}
-        </button>
-      ))}
-    </div>
-  </section>
+      const selectedTags = new Set<string>();
 
-  <section class="container article-list" aria-label="Blog articles">
-    {posts.map((post) => (
-      <a class="article-row card" href={post.href} data-post-tags={post.tag}>
-        <div>
-          <div class="article-meta">
-            <time datetime={new Date(post.date).toISOString()}>
-              {formatDate(post.date)}
-            </time>
-          </div>
-          <h2>{post.title}</h2>
-          <p>{post.description}</p>
-        </div>
+      const filterButtons =
+        Array.from(
+          root.querySelectorAll<HTMLButtonElement>(
+            '[data-tag-filter]',
+          ),
+        );
 
-        <span class={getTagClass(post.tag)}>{post.tag}</span>
-      </a>
-    ))}
-  </section>
+      const articles =
+        Array.from(
+          root.querySelectorAll<HTMLElement>(
+            '[data-post-tags]',
+          ),
+        );
+
+      const updateFilters = (): void => {
+        for (const article of articles) {
+          const articleTags =
+            article.dataset.postTags
+              ?.split(',')
+              .map((tag) => tag.trim())
+              .filter(Boolean) ?? [];
+
+          const visible =
+            selectedTags.size === 0 ||
+            articleTags.some((tag) =>
+              selectedTags.has(tag),
+            );
+
+          article.hidden = !visible;
+        }
+
+        for (const button of filterButtons) {
+          const tag = button.dataset.tagFilter;
+
+          if (!tag) {
+            continue;
+          }
+
+          const selected =
+            selectedTags.has(tag);
+
+          button.classList.toggle(
+            'is-selected',
+            selected,
+          );
+
+          button.classList.toggle(
+            'is-muted',
+            selectedTags.size > 0 &&
+              !selected,
+          );
+
+          button.setAttribute(
+            'aria-pressed',
+            String(selected),
+          );
+        }
+      };
+
+      for (const button of filterButtons) {
+        button.addEventListener(
+          'click',
+          () => {
+            const tag =
+              button.dataset.tagFilter;
+
+            if (!tag) {
+              return;
+            }
+
+            if (selectedTags.has(tag)) {
+              selectedTags.delete(tag);
+            } else {
+              selectedTags.add(tag);
+            }
+
+            updateFilters();
+          },
+        );
+      }
+    }
+
+    initializeBlogFilters();
+
+    document.addEventListener(
+      'astro:page-load',
+      initializeBlogFilters,
+    );
+  </script>
+
+  <style>
+    .blog-index {
+      width: 100%;
+    }
+
+    .article-list {
+      display: grid;
+      gap: 1rem;
+
+      /*
+       * Keep this container simple for the
+       * browser to paint while scrolling.
+       */
+      isolation: isolate;
+    }
+
+    .article-row {
+      display: grid;
+      grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+      align-items: center;
+      gap: 1.5rem;
+
+      width: 100%;
+      min-width: 0;
+
+      padding: 1.25rem 1.35rem;
+
+      border:
+        1px solid
+        color-mix(
+          in srgb,
+          currentColor 14%,
+          transparent
+        );
+
+      border-radius: 0.75rem;
+
+      /*
+       * Important:
+       *
+       * Do not use the global .card class here.
+       * Keep every article row cheap to paint.
+       */
+      background:
+        color-mix(
+          in srgb,
+          currentColor 5%,
+          transparent
+        );
+
+      color: inherit;
+      text-decoration: none;
+
+      /*
+       * Explicitly avoid expensive compositing
+       * effects on the scrolling list.
+       */
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      filter: none;
+      box-shadow: none;
+      transform: none;
+
+      /*
+       * Only animate the inexpensive border.
+       */
+      transition:
+        border-color 120ms ease;
+    }
+
+    .article-row:hover {
+      border-color:
+        color-mix(
+          in srgb,
+          currentColor 32%,
+          transparent
+        );
+    }
+
+    .article-row:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 3px;
+    }
+
+    .article-row[hidden] {
+      display: none;
+    }
+
+    .article-row__content {
+      min-width: 0;
+    }
+
+    .article-meta {
+      margin: 0 0 0.35rem;
+      font-size: 0.875rem;
+      line-height: 1.4;
+      opacity: 0.65;
+    }
+
+    .article-row h2 {
+      margin: 0;
+      line-height: 1.25;
+    }
+
+    .article-row p {
+      max-width: 70ch;
+      margin: 0.5rem 0 0;
+      line-height: 1.6;
+      opacity: 0.8;
+    }
+
+    /*
+     * getTagClass() may attach shared visual
+     * effects. Override expensive ones for
+     * tags in the scrolling article list.
+     */
+    .article-row__tag {
+      flex: none;
+
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      filter: none;
+      box-shadow: none;
+      transform: none;
+      transition: none;
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tag-filter {
+      cursor: pointer;
+    }
+
+    .tag-filter.is-muted {
+      opacity: 0.45;
+    }
+
+    .tag-filter.is-selected {
+      opacity: 1;
+    }
+
+    @media (max-width: 42rem) {
+      .article-row {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+
+        padding:
+          1rem
+          1.1rem;
+      }
+
+      .article-row__tag {
+        justify-self: start;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .article-row {
+        transition: none;
+      }
+    }
+  </style>
 </BaseLayout>

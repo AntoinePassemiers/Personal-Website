@@ -21,6 +21,10 @@ for key in list(mapping.keys()):
     mapping[key.upper()] = mapping[key]
 
 for svg_file in dark_dir.glob("*.svg"):
+
+    if svg_file.name not in {"tornado-cash-explanation.svg"}:
+        continue
+
     content = svg_file.read_text(encoding="utf-8")
 
     for src_color, dest_color in mapping.items():
