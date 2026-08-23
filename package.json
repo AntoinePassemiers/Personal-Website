@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^4.0.0",
+    "@fluent/bundle": "^0.19.1",
     "astro": "^5.0.0",
     "echarts": "^6.1.0",
     "katex": "^0.17.0",

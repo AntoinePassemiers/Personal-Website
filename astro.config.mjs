@@ -4,6 +4,7 @@ import rehypeSlug from 'rehype-slug';
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 
+
 export default defineConfig({
   site: 'https://AntoinePassemiers.github.io',
   base: '/Personal-Website',
@@ -18,5 +19,12 @@ export default defineConfig({
       theme: 'github-dark',
       wrap: true
     }
+  },
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr"],
+    routing: {
+      prefixDefaultLocale: true,
+    },
   },
 });
