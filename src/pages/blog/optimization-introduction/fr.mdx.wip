@@ -1,0 +1,104 @@
+---
+layout: ../../../layouts/PostLayout.astro
+title: Une introduction à l'optimisation mathématique
+description: TODO
+date: 2026-09-09
+author: Antoine Passemiers
+lang: fr
+tag: Optimisation
+difficulty: 3
+---
+
+import ResponsiveImage from '../../../components/ResponsiveImage.astro';
+
+Je vais me livrer à un exercice périlleux aujourd'hui: résumer l'optimisation mathmétique en un seul post. L'objectif n'est pas d'apprendre quoi que ce soit aux chercheurs du domaine, mais plutôt de présenter ce dernier aux personnes curieuses et ayant le bagage mathématique minimum requis.
+
+Dans le monde du business et dans l'industrie, le terme "optimisation" est omniprésent mais vague. En mathématiques, le concept est parfaitement bien défini. Il s'agit de l'étude des algorithmes ou plus généralement des méthodes utilisées pour minimiser (ou maximiser) une fonction mathématique. Appelons cette fonction $f$. Le problème, dans sa version la plus simple, se présente sous la forme:
+
+$$
+\min_x \quad f(x),
+$$
+
+où $x$ est la solution du problème, représentée la plupart du temps sous la forme d'un vecteur. Notons que minimiser une fonction revient à maximiser son opposé:
+
+$$
+\max_x \quad -f(x).
+$$
+
+Trouver une solution $x$ est parfois trivial, parfois impossible, et parfois il existe une infinité de solutions. En fonction de $f$, le problème peut devenir plus ou moins difficile à résoudre. Quoi qu'il en soit, le problème devient beaucoup plus intéressant lorsque l'on ajoute des *contraintes*:
+
+$$
+\begin{aligned}
+\min_x \quad & f(x), \\
+s.t. \quad & Ax \le b.
+\end{aligned}
+$$
+
+La présence d'une inégalité $Ax \le b$, ou d'une égalité $Ax = b$, est ce qui différencie les problèmes d'optimisation libres des problèmes d'optimisation sous contraintes, et fait intervenir des concepts et des méthodes de résolution fort différentes.
+
+Prenons un exemple concret: une entreprise vend un premier produit à 5 dollars l'unité et un second produit à 5 dollars l'unité également. Si $x_1$ et $x_2$ représentent les quantités des deux biens respectivement vendus durant l'année, alors le chiffre d'affaires annuel est donné par $f(x) = 5x_1 + 5x_2$. En optimisation, cette fonction est appelée fonction *objectif*, car c'est la fonction que l'on cherche ici à maximiser. Supposons également que l'usine de cette entreprise est soumise à des contraintes de production:
+$$
+\begin{aligned}
+\max_x \quad & 5x_1 + 5x_2, \\
+s.t. \quad & x + 3y \le -15000, \\
+\quad & 4x - y \le 25000, \\
+\quad & x - 3y \le 3000, \\
+\quad & -x - y \le -4000, \\
+\quad & -x + y \le 500. \\
+\end{aligned}
+$$
+Cette formulation peut être écrite sous forme matricielle:
+$$
+\begin{aligned}
+\min_x \quad & c^T x, \\
+s.t. \quad & Ax \le b,
+\end{aligned}
+$$
+où $c = (5, 5)$, $b = (-15000, 25000, 3000, -4000, 500)$, et:
+$$
+A = \begin{pmatrix}
+1 & 3 \\
+4 & -1 \\
+1 & -3 \\
+-1 & -1 \\
+-1 & 1 \\
+\end{pmatrix}.
+$$
+Les solutions satisfaisant ces inégalités se trouvent à l'intérieur du polyèdre (en particulier, polygone) convexe ci-dessous:
+<ResponsiveImage
+  folder="/images/optimization"
+  filename="Simplex-polyhedron.svg"
+  alt="Simplex algorithm"
+/>
+
+Sur ce graphique simplifié, les axes $x_1$ et $x_2$ représentent les quantités vendues de chacun de deux produits, et ces quantités sont bornées par les capacités de production. Ce qui manque encore au graphique, c'est une représentation du chiffre d'affaires. Ce dernier est donné par $5x_1 + 5x_2$. Le vecteur $(5, 5)$ définit donc un nouvel axe le long duquel le chiffre d'affaires diminue/augmente. La solution se trouvant le plus loin sur cet axe, et donc, maximisant le chiffre d'affaires, est le sommet situé le plus à droite du polyèdre:
+
+<ResponsiveImage
+  folder="/images/optimization"
+  filename="Simplex-objective.svg"
+  alt="Simplex algorithm"
+/>
+
+De manière générale, lorsque la fonction objectif est linéaire, et que les contraintes sont linéaires également (et tel est le cas dans notre exemple), alors la solution *optimale* est nécessairement un sommet du polyèdre défini par les contraintes.
+
+## L'algorithme du simplexe
+
+TODO
+
+<ResponsiveImage
+  folder="/images/optimization"
+  filename="Simplex.svg"
+  alt="Simplex algorithm"
+/>
+
+## Structure de la matrice de contraintes
+
+Dans les problèmes à contraintes linéaires, la matrice de contraintes $A$ possède parfois des propriétés qui rendent le problème significativement plus simple à résoudre. 
+
+### Matrices totalement unimodulaires
+
+Une matrice est totalement unimodulaire si chaque sous-matrice carrée contenue dans celle-ci possède un déterminant égal à 1, 0 ou -1. Une conséquence directe est qu'une telle matrice est elle-même composée uniquement d'éléments 1, 0 ou -1.
+
+TOOD
+ 
+https://en.wikipedia.org/wiki/Balanced_matrix

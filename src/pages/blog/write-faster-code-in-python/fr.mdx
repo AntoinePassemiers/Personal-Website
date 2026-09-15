@@ -1,0 +1,501 @@
+---
+layout: ../../../layouts/PostLayout.astro
+title: Écrire du code efficace en Python
+description: Exemple avec un algorithme simple de calcul de fréquences de k-mères
+date: 2026-09-14
+author: Antoine Passemiers
+lang: fr
+tag: Programmation
+difficulty: 1
+---
+
+import ResponsiveImage from '../../../components/ResponsiveImage.astro';
+
+Je ne vais pas y aller par quatre chemins: le meilleur moyen de rendre du code efficace en Python, c'est d'écrire le moins de code possible en Python. Pour illustrer mon propos, je vais prendre un algorithme très simple, tellement simple qu'il pourrait faire office d'exercice LeetCode.
+
+Le problème est le suivant: vous recevez en entrée une chaîne de caractères représentant une séquence d'ADN. L'ADN est souvent représenté à l'aide des lettres A, C, G, T, correspondant respectivement à l'adénine, la cytosine, la guanine et la thymine. Il vous est demandé de calculer les fréquences des k-mers de taille $k$. Par exemple, pour la séquence "AGGAGCTAG", les 2-mers sont les suivants (avec les fréquences suivantes):
+- **AG**: 37.5% (apparaît 3 fois)
+- **GG**: 12.5% (apparaît 1 fois)
+- **GA**: 12.5% (apparaît 1 fois)
+- **GC**: 12.5% (apparaît 1 fois)
+- **CT**: 12.5% (apparaît 1 fois)
+- **TA**: 12.5% (apparaît 1 fois)
+
+Ce qui donne le tableau suivant: `[0, 0, 0.375, 0, 0, 0, 0, 0.125, 0.125, 0.125, 0.125, 0, 0.125, 0, 0, 0]`.
+
+La stratégie pour implémenter un tel algorithme est simple: utiliser une fenêtre glissante de taille $k$ sur la chaîne de caractères, et utiliser les $k$ caractères dans la fenêtre pour calculer l'indice du $k$-mer correspondant dans le tableau. 
+L'indice est donné par la formule suivante:
+$$
+j = \sum_{i=0}^{k-1} v_i 4^i,
+$$
+où $v_i$ est la valeur numérique du $i$-ème caractère du $k$-mer. La valeur numérique est 0 pour A, 1 pour C, 2 pour G et enfin 3 pour T. Les valeurs de $j$ vont de $0$ à $4^k - 1$, et l'histogramme en sortie a une taille de $4^k$.
+
+Voici une implémentation naïve en Python:
+
+```python
+base_mapping = {
+    'A': 0,
+    'C': 1,
+    'G': 2,
+    'T': 3,
+}
+
+
+def embed_naive(sequence: str, k: int = 6) -> np.array:
+
+    # Initialize histogram
+    hist = [0.0] * (4 ** k)
+
+    for start in range(len(sequence) - k + 1):
+
+        # Compute the k-mer index
+        idx = 0
+        for i in range(k):
+            base = sequence[start + i]
+            value = base_mapping[base]
+            idx += value * (4 ** i)
+
+        # Increment frequency
+        hist[idx] += 1.0
+
+    # Normalize histogram
+    total = sum(hist)
+    for i in range(len(hist)):
+        hist[i] /= total
+
+    return hist
+```
+
+Comme vous le savez sûrement, les boucles sont très lentes en Python. Heureusement, la bibliothèque NumPy permet la vectorisation, c'est-à-dire d'effectuer des opérations en parallèle de manière très efficace (avec des boucles implémentées en languages de bas niveau, tel que le C).
+
+### La vectorisation avec NumPy
+
+Dans beaucoup de cas, NumPy permet des gains de performance énormes en échange d'un code assez court, mais requiert de bien connaître la documentation, et demande parfois de la créativité. En effet, réécrire un code sans boucle explicite ni récursion implique parfois de devoir trouver quelques astuces.
+
+Commençons par le commencement. D'abord, NumPy est conçu pour manipuler des tableaux de nombres, pas des chaînes de caractère. Ces dernières doivent donc d'abord être converties en tableaux de bytes/uint8. Si l'on fait l'hypothèse que l'entrée ne contient que des A, C, G et T, alors la conversion de Unicode vers ASCII ne causera aucune perte d'information. Pour convertir une chaîne de caractères `sequence` en `bytes`, il suffit d'appeler `sequence.encode("ascii")`. Faisons à présent l'hypothèse que la chaîne de caractères est déjà convertie, et que l'input de notre nouvelle fonction est un objet de type `bytes`. L'étape suivante est de convertir cet objet en tableau NumPy à l'aide de la fonction `numpy.frombuffer`:
+
+```python
+# `sequence` est un objet de type `bytes`, obtenu grâce à `sequence = sequence.encode("ascii")`
+raw = np.frombuffer(sequence, dtype=np.uint8)
+```
+
+Ensuite, il faut changer la représentation numérique de manière à ce que le tableau ne contienne que des 0, 1, 2 et 3. Autrement, la formule donnée plus haut ne peut pas s'appliquer. La solution est de définir un autre tableau NumPy qui va, pour chaque caractère ASCII, assigner la valeur désirée:
+
+```python
+LUT = np.full(256, 255, dtype=np.uint8)
+LUT[ord('A')] = 0
+LUT[ord('C')] = 1
+LUT[ord('G')] = 2
+LUT[ord('T')] = 3
+```
+
+Les caractères différents de A, C, G et T se verront assigner la valeur arbitraire de 255, ce qui permettra de les détecter facilement et de lever une exception.
+
+Grâce à la magie du $fancy indexing$, il suffit d'indicer ce nouveau tableau avec l'ancien pour obtenir la bonne représentation:
+
+```python
+seq = LUT[raw]
+```
+
+En effet, si le premier élément de `raw` est 'A', alors son code ASCII est `ord('A')`, c'est-à-dire 65. NumPy va alors accéder à la valeur située à l'emplacement 65 dans `LUT`, c'est-à-dire $0$. NumPy va ensuite itérer (en C) sur tous les éléments de `raw` et construire ainsi progressivement le tableau `seq`. Jusqu'ici, je n'ai utilisé aucune boucle, mais simplement appelé une fonction préexistante et dont l'implémentation est déjà très efficace.
+
+Calculer les indices reste assez trivial, et la formule énoncée précédemment se traduit assez simplement en code NumPy:
+
+```python
+idx = seq.astype(np.uint32)
+for i in range(1, k):
+    idx[:-i] += seq[i:].astype(np.uint32) * (4 ** i)
+idx = idx[:len(seq) - k + 1]
+```
+
+Notez que j'ai utilisé une boucle pour calculer les indices, mais celle-ci n'itère que $k$ fois et $k$ est généralement petit. Maintenant vient la partie qui demande de mieux connaître la documentation: comment compter les occurrences de chaque indice ? Il y a deux solutions à ce problème: `numpy.add.at` ou `numpy.bincount`. Je vais commencer avec `numpy.add.at`. La signature de cette fonction est `numpy.add.at(a, indices, b)`, où `a` est un tableau auquel on veut ajouter (additionner) des valeurs `b` se trouvant aux indices `indices`. Les valeurs sont ajoutées dans `a` de façon "inplace": aucune valeur ne retournée par la fonction:
+
+```python
+hist = np.zeros(4 ** k)
+np.add.at(hist, idx, 1)
+```
+
+Pour chaque indice $i$ dans le tableau `idx`, la fonction va ajouter $1$ à l'emplacement `hist[i]`, ce qui correspond exactement à l'algorithme naïf codé précédemment.
+
+Enfin, pour obtenir des fréquences, il suffit de normaliser `hist` afin que sa somme soit égale à 1:
+
+```python
+_sum = np.sum(hist)
+hist /= _sum
+```
+
+D'ailleurs, une façon plus efficace se s'y prendre serait de simplement diviser par `len(seq)`, ce qui ne requiert aucun calcul. Quoiqu'il en soit, le goulot d'étranglement se trouve au niveau du calcul des indices, pas de la normalisation.
+
+Par souci de clareté, le code complet est donné ci-dessous:
+
+```python
+import numpy as np
+
+
+# Base lookup table
+LUT = np.full(256, 255, dtype=np.uint8)
+LUT[[ord('A'), ord('C'), ord('G'), ord('T')]] = [0, 1, 2, 3]
+
+
+def embed(sequence: bytes, k: int = 6) -> np.array:
+
+    # Label-encode string into a uint8 array
+    raw = np.frombuffer(sequence, dtype=np.uint8)
+    seq = LUT[raw]
+    if np.any(seq > 3):
+        raise ValueError("Non-ACGT base")
+
+    # Compute all k-mer indexes at once
+    idx = seq.astype(np.uint32)
+    for i in range(1, k):
+        idx[:-i] += seq[i:].astype(np.uint32) * (4 ** i)
+    idx = idx[:len(seq) - k + 1]
+
+    # Initialize histogram
+    hist = np.zeros(4 ** k)
+
+    # Compute frequencies
+    np.add.at(hist, idx, 1)
+
+    # Normalize histogram
+    _sum = np.sum(hist)
+    hist /= _sum
+
+    return hist
+```
+
+### Les fenêtres glissantes avec NumPy
+
+Il est possible de se passer de la boucle Python présente dans le code précédent. NumPy propose la fonction `numpy.lib.stride_tricks.sliding_window_view`, qui permet d'implémenter une fenêtre glissante sous forme de tableau de plus haute dimension. Dans le cas présent, notre tableau `seq` donnerait une matrice où les lignes corrrespondent aux emplacements dans `seq`, et les colonnes correspondent aux éléments au sein de la fenêtre glissante (et donc aux éléments du $k$-mère). Par exemple, `numpy.lib.stride_tricks.sliding_window_view([0, 2, 2, 1, 3], 2)` renvoie `[[0, 2], [2, 2], [2, 1], 1, 3]`. Il ne reste plus qu'à multiplier par les exposants comme précédemment pour obtenir les bons indices:
+
+```python
+powers = 4 ** np.arange(k, dtype=np.uint32)
+idx = (
+    np.lib.stride_tricks.sliding_window_view(seq, k)
+    @ powers
+)
+```
+
+Comme le produit (`@`) entre une matrice (tableau à 2 dimensions) et un vecteur (tableau à 1 dimension) est un vecteur, le résultat `idx` est bel et bien un tableau à 1 dimension comme précédemment.
+
+Enfin, utilisons la fonction `numpy.bincount` au lieu de `numpy.add.at` cette fois:
+
+```python
+hist = np.bincount(idx, minlength=4 ** k).astype(float)
+```
+
+L'argument `minlength` est nécessaire pour garantir un tableau de taille $4^k$ en sortie, car NumPy tronque automatiquement les tableaux par la droite lorsqu'ils contiennent des zéros. Voici le code complet:
+
+```python
+def embed_v2(sequence: bytes, k: int = 6) -> np.array:
+
+    # Label-encode string into a uint8 array
+    raw = np.frombuffer(sequence, dtype=np.uint8)
+    seq = LUT[raw]
+    if np.any(seq > 3):
+        raise ValueError("Non-ACGT base")
+
+    # Compute k-mer indexes all at once
+    powers = 4 ** np.arange(k, dtype=np.uint32)
+    idx = (
+        np.lib.stride_tricks.sliding_window_view(seq, k)
+        @ powers
+    )
+
+    # Compute frequencies
+    hist = np.bincount(idx, minlength=4 ** k).astype(float)
+
+    # Normalize histogram
+    hist /= hist.sum()
+    return hist
+```
+
+
+### Cython, un langage hybride à la frontière de Python et C/C++
+
+Cython est probablement une des meilleures découvertes que j'ai faites durant mes études. Quand on est habitué à travailler avec des écosystèmes Python et C complètement séparés, l'idée de pouvoir les interfacer me semblait presque magique. Spoiler: il n'y a aucune magie, car Cython requiert à la fois du temps et de l'expertise. Vous aurez besoin de lire et retenir l'entièreté de la documentation (et plus encore) avant d'être capable d'écrire du code qui compile et ne crashe pas à l'exécution. Malgré tout ça, Cython permet des gains de performance considérables, si correctement utilisé.
+
+Je ne vais pas m'attarder sur le code (c'est globalement à mi-chemin entre du Python et du C), mais je donnerais tout de même un conseil: utilisez le mot-clé `nogil`. Encapsuler un bloc de code avec `with nogil:` permet de s'assurer que l'intégralité du code s'y trouvant fonctionne sans le GIL (global interpreter lock), c'est-à-dire qu'il pourrait théoriquement s'exécuter sans interpréteur Python, et donc que c'est du pur C ou C++. Si votre code ne compile pas à cause de `nogil`, ça signifie que votre code repose sur Python d'une manière ou d'une autre et donc qu'il aurait été inutilement lent à l'exécution.
+
+Remarquez l'utilisation de `nogil` pour la partie critique de l'algorithme:
+
+```python
+# cython: boundscheck=False, wraparound=False, initializedcheck=False
+# cython: cdivision=True, nonecheck=False
+
+import numpy as np
+cimport numpy as cnp
+
+from libc.stdint cimport uint8_t, uint64_t
+
+
+cdef inline uint8_t encode_base(uint8_t c) noexcept nogil:
+    if c == 65:  # A
+        return 0
+    elif c == 67:  # C
+        return 1
+    elif c == 71:  # G
+        return 2
+    elif c == 84:  # T
+        return 3
+    return 255
+
+
+cpdef embed_cython(bytes data, int k=6):
+    cdef:
+        const uint8_t[:] seq = data
+
+        Py_ssize_t n = len(data)
+        Py_ssize_t num_kmers
+        Py_ssize_t hist_size
+        Py_ssize_t i
+        int j
+
+        uint64_t idx = 0
+        uint8_t base
+
+        cnp.ndarray[cnp.float64_t, ndim=1] hist
+        cnp.float64_t[:] h
+
+    if k <= 0:
+        raise ValueError("k must be positive")
+
+    if k >= 32:
+        raise ValueError("k must be smaller than 32")
+
+    hist_size = (<Py_ssize_t>1) << (2 * k)
+
+    # Initialize histogram
+    hist = np.zeros(hist_size, dtype=np.float64)
+    h = hist
+
+    if n < k:
+        return hist
+
+    num_kmers = n - k + 1
+
+    # Python is not needed
+    with nogil:
+    
+        # Compute first k-mer index and increment frequency
+        for j in range(k):
+            base = encode_base(seq[j])
+            if base > 3:
+                with gil:
+                    raise ValueError(f"Non-ACGT base at position {j}")
+            idx |= (<uint64_t>base) << (2 * j)
+        h[idx] += 1.0
+    
+        # Rolling window
+        for i in range(1, num_kmers):
+    
+            # Label-encode next base
+            base = encode_base(seq[i + k - 1])
+            if base > 3:
+                with gil:
+                    raise ValueError(f"Non-ACGT base at position {i + k - 1}")
+    
+            # Update k-mer index
+            idx >>= 2
+            idx |= (<uint64_t>base) << (2 * (k - 1))
+    
+            # Increment frequency
+            h[idx] += 1.0
+    
+        # Normalize histogram
+        for i in range(hist_size):
+            h[i] /= <cnp.float64_t>num_kmers
+
+    return hist
+```
+
+Notez également que j'ai utilisé une nouvelle astuce qui était difficilement exploitable avec NumPy: les indices des $k$-mères sont maintenant calculés de manière incrémentale. Concrètement, le $4^i$ dans la formule $j = \sum_{i=0}^{k-1} v_i 4^i$ permet de décaler la valeur $v_i$ de $i$ positions, c'est-à-dire de $2i$ bits. Lorsque la fenêtre glissante se déplace de 1 position, les 2 bits les plus à droite doivent sortir de l'indice, et les 2 bits les plus à gauche doivent être remplacés par la nouvelle valeur entrante. C'est précisément c'est que j'ai fait ici:
+
+```python
+idx >>= 2
+idx |= (<uint64_t>base) << (2 * (k - 1))
+```
+
+Grâce à cette astuce, mon nouvel algorithme effectue $un seul$ passage sur les données contenues dans `seq`, ce qui permet d'éviter toute redondance de calculs.
+
+
+### Numba, une alternative plus simple mais plus contraignante à Cython
+
+Pour les moins téméraires, il existe une excellente alternative à Cython: Numba. Bien que Numba ne propose pas autant de fonctionalités que Cython, cette bibliothèque est en revanche beaucoup plus facile à apprendre. En particulier, il n'y a aucun besoin d'expliciter le type des variables, car l'inférence de type est automatisée. Le défaut principal de Numba est son manque de flexibilité: alors que Cython permet de manipuler n'importe quelle struct C ou classe C++, ou d'importer n'importe quelle bibliothèque, Numba a été principalement conçu pour travailler avec des tableaux NumPy. Cepdendant, le code devrait être plus facile à lire que son équivalent Cython:
+
+```python
+@njit(inline="always")
+def encode_base(b):
+    if b == 65:   # A
+        return 0
+    elif b == 67:  # C
+        return 1
+    elif b == 71:  # G
+        return 2
+    elif b == 84:  # T
+        return 3
+    else:
+        raise ValueError("Non-ACGT base")
+
+
+@njit(cache=True)
+def embed_numba(seq, k=6):
+    n = len(seq)
+    num_kmers = n - k + 1
+
+    # Initialize histogram
+    hist_size = 1 << (2 * k)
+    hist = np.zeros(hist_size, dtype=np.float64)
+
+    if n < k:
+        return hist
+
+    # Compute first k-mer index and increment frequency
+    idx = 0
+    for j in range(k):
+        b = seq[j]
+        v = encode_base(b)
+        idx |= v << (2 * j)
+    hist[idx] += 1.0
+
+    # Rolling window
+    for i in range(1, num_kmers):
+
+        # Label-encode next base
+        b = seq[i + k - 1]
+        v = encode_base(b)
+
+        # Update k-mer index
+        idx >>= 2
+        idx |= v << (2 * (k - 1))
+
+        # Increment frequency
+        hist[idx] += 1.0
+
+    # Normalize histogram
+    for i in range(hist_size):
+        hist[i] /= num_kmers
+
+    return hist
+```
+
+### Écrire du C++ directement
+
+Enfin, la solution la plus extrême est d'implementer l'algorithme directement en C++, et de l'interfacer avec Python. L'interopérabilité est permise avec pybind11 ou nanobind, notamment. Je vais illustrer ici avec pybind11, car nanobind demande énormément plus de travail pour créer un module Python à partir du code source C++.
+
+```cpp
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+
+#include <algorithm>
+#include <cstdint>
+#include <stdexcept>
+#include <string>
+
+namespace py = pybind11;
+
+
+// Base label-encoding
+static inline uint8_t encode_base(uint8_t c) noexcept {
+    switch (c) {
+        case 'A': return 0;
+        case 'C': return 1;
+        case 'G': return 2;
+        case 'T': return 3;
+        default:  return 255;
+    }
+}
+
+
+py::array_t<double> embed(py::bytes sequence, int k = 6) {
+    std::string seq = sequence;
+    const size_t n = seq.size();
+
+    if (k <= 0 || k >= 32)
+        throw std::invalid_argument("Invalid k");
+
+    // Initialize histogram
+    const size_t hist_size = size_t{1} << (2 * k);
+    py::array_t<double> result(hist_size);
+    auto buf = result.request();
+    auto* hist = static_cast<double*>(buf.ptr);
+    std::fill(hist, hist + hist_size, 0.0);
+
+    if (n < static_cast<size_t>(k))
+        return result;
+
+    const size_t num_kmers = n - static_cast<size_t>(k) + 1;
+
+    {
+        // Python is not needed
+        py::gil_scoped_release release;
+
+        // Compute first k-mer index and increment frequency
+        uint64_t idx = 0;
+        for (int j = 0; j < k; ++j) {
+            const uint8_t v = encode_base(static_cast<uint8_t>(seq[j]));
+            if (v > 3) throw std::runtime_error("Non-ACGT base");
+            idx |= uint64_t(v) << (2 * j);
+        }
+        hist[idx] += 1.0;
+
+        // Rolling window
+        for (size_t i = 1; i < num_kmers; ++i) {
+
+            // Label-encode base
+            const uint8_t v = encode_base(static_cast<uint8_t>(seq[i + k - 1]));
+            if (v > 3) throw std::runtime_error("Non-ACGT base");
+
+            // Update k-mer index
+            idx >>= 2;
+            idx |= uint64_t(v) << (2 * (k - 1));
+
+            // Increment frequency
+            hist[idx] += 1.0;
+        }
+
+        // Normalize histogram
+        const double scale = 1.0 / static_cast<double>(num_kmers);
+        for (size_t i = 0; i < hist_size; ++i) hist[i] *= scale;
+    }
+
+    return result;
+}
+
+
+// Create module
+PYBIND11_MODULE(kmer_cpp, m) {
+    m.def(
+        "embed",
+        &embed,
+        py::arg("sequence"),
+        py::arg("k") = 6
+    );
+}
+```
+
+Une fois le module défini, il suffit d'importer le fichier avec cppimport, qui s'occupera de la compilation et du linkage:
+
+```python
+import cppimport
+
+
+kmer_cpp = cppimport.imp("kmer_cpp")
+
+
+def embed_pybind11(sequence: bytes, k: int = 6):
+    return kmer_cpp.embed(sequence, k)
+```
+
+
+### Résultat des courses
+
+Comparons à présent les différentes approches sur une chaîne de 1000 caractères. L'utilisation appropriée de NumPy a permis un gain de vitesse de presque $\times 10$ par rapport à la version naïve, et l'utilisation de `numpy.lib.stride_tricks.sliding_window_view` a permis d'encore doubler la vitesse. La version Cython est quant à elle $13 \times$ plus rapide que l'implémentation naïve. La version Numba est légèrement plus rapide que la version Cython. Enfin, que ce soit avec nanobind ou pybind11, la version C++ est $295 \times$ plus rapide que la version naïve.
+
+<ResponsiveImage
+  folder="/images/write-efficient-python-code"
+  filename="benchmark.svg"
+  alt="Speed benchmark"
+/>
+
+Si vous vous allez plus loin et expérimenter par vous-même, le notebook Jupyter original [se trouve ici](https://github.com/AntoinePassemiers/Personal-Website/tree/master/src/pages/blog/write-faster-code-in-python/main.ipynb).
