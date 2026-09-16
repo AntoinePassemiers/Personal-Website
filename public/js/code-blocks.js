@@ -76,7 +76,11 @@ document.querySelectorAll('pre').forEach((pre) => {
   const icon = languageIcons[language] ?? '📄';
   const lineCount = countLines(code);
 
-  pre.classList.add('enhanced-code-block');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'enhanced-code-block';
+
+  pre.parentNode.insertBefore(wrapper, pre);
+  wrapper.appendChild(pre);
 
   const header = document.createElement('div');
   header.className = 'code-block-header';
@@ -89,7 +93,7 @@ document.querySelectorAll('pre').forEach((pre) => {
   actions.className = 'code-block-actions';
 
   if (lineCount >= LONG_CODE_LINE_THRESHOLD) {
-    pre.classList.add('is-collapsed');
+    wrapper.classList.add('is-collapsed');
 
     const collapseButton = document.createElement('button');
     collapseButton.className = 'code-block-button';
@@ -97,7 +101,7 @@ document.querySelectorAll('pre').forEach((pre) => {
     collapseButton.textContent = 'Expand';
 
     collapseButton.addEventListener('click', () => {
-      const isCollapsed = pre.classList.toggle('is-collapsed');
+      const isCollapsed = wrapper.classList.toggle('is-collapsed');
       collapseButton.textContent = isCollapsed ? 'Expand' : 'Collapse';
     });
 
@@ -107,11 +111,11 @@ document.querySelectorAll('pre').forEach((pre) => {
     bottomExpandButton.setAttribute('aria-label', 'Expand code block');
 
     bottomExpandButton.addEventListener('click', () => {
-      pre.classList.remove('is-collapsed');
+      wrapper.classList.remove('is-collapsed');
       collapseButton.textContent = 'Collapse';
     });
 
-    pre.appendChild(bottomExpandButton);
+    wrapper.appendChild(bottomExpandButton);
     actions.appendChild(collapseButton);
   }
 
@@ -135,5 +139,5 @@ document.querySelectorAll('pre').forEach((pre) => {
   actions.appendChild(copyButton);
 
   header.append(label, actions);
-  pre.prepend(header);
+  wrapper.prepend(header);
 });

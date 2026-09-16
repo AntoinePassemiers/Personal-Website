@@ -7,6 +7,14 @@ const tagColors = [
   'tag-cyan'
 ];
 
+const tagMapping = {
+  'Machine learning': 'tag-blue',
+  'Optimisation': 'tag-orange',
+  'Optimization': 'tag-orange',
+  'Programmation': 'tag-pink',
+  'Programming': 'tag-pink',
+}
+
 const hashString = (value) => {
   let hash = 0;
 
@@ -19,6 +27,10 @@ const hashString = (value) => {
 };
 
 export function getTagClass(tag) {
-  const index = hashString(tag) % tagColors.length;
-  return `tag ${tagColors[index]}`;
+  if (tag in tagMapping) {
+    return `tag ${tagMapping[tag]}`;
+  } else {
+    const index = hashString(tag) % tagColors.length;
+    return `tag ${tagColors[index]}`;
+  }
 }
