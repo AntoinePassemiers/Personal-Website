@@ -439,47 +439,6 @@ section { margin: 56px 0; }
   justify-content: center;
 }
 
-.code-block-with-copy {
-  position: relative;
-}
-
-.copy-code-button {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-  margin: 0;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 0.6rem;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  cursor: pointer;
-}
-
-.copy-code-button svg {
-  display: block;
-  width: 1rem;
-  height: 1rem;
-}
-
-.copy-code-button:hover {
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.code-copy-button svg {
-  display: block;
-  width: 1rem;
-  height: 1rem;
-}
-
 .code-block-button:hover {
   background: rgba(255, 255, 255, 0.12);
 }
@@ -493,13 +452,18 @@ section { margin: 56px 0; }
   margin: 1.5rem 0;
 }
 
-.enhanced-code-block > pre {
+.prose .enhanced-code-block > pre {
   margin: 0;
+  overflow-x: auto;
 }
 
 .enhanced-code-block.is-collapsed > pre {
   max-height: 22rem;
   overflow: hidden;
+}
+
+.enhanced-code-block > pre {
+  margin: 0;
 }
 
 .code-block-header {
@@ -530,19 +494,26 @@ section { margin: 56px 0; }
   gap: 0.45rem;
 }
 
-.code-collapse-button {
+.code-block-button {
+  min-height: 1.85rem;
   border: 1px solid rgba(148, 163, 184, 0.28);
-  border-radius: 999px;
-  padding: 0.35rem 0.7rem;
+  border-radius: 0.55rem;
+  padding: 0.25rem 0.55rem;
   background: rgba(255, 255, 255, 0.06);
   color: #e2e8f0;
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.code-collapse-button:hover {
-  background: rgba(255, 255, 255, 0.12);
+.code-copy-button svg {
+  display: block;
+  width: 1rem;
+  height: 1rem;
 }
 
 .enhanced-code-block.is-collapsed code {

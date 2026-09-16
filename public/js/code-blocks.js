@@ -76,10 +76,11 @@ document.querySelectorAll('pre').forEach((pre) => {
   const icon = languageIcons[language] ?? '📄';
   const lineCount = countLines(code);
 
+  // Create an actual container around Shiki's <pre>.
   const wrapper = document.createElement('div');
   wrapper.className = 'enhanced-code-block';
 
-  pre.parentNode.insertBefore(wrapper, pre);
+  pre.before(wrapper);
   wrapper.appendChild(pre);
 
   const header = document.createElement('div');
@@ -101,21 +102,10 @@ document.querySelectorAll('pre').forEach((pre) => {
     collapseButton.textContent = 'Expand';
 
     collapseButton.addEventListener('click', () => {
-      const isCollapsed = wrapper.classList.toggle('is-collapsed');
-      collapseButton.textContent = isCollapsed ? 'Expand' : 'Collapse';
+      const collapsed = wrapper.classList.toggle('is-collapsed');
+      collapseButton.textContent = collapsed ? 'Expand' : 'Collapse';
     });
 
-    const bottomExpandButton = document.createElement('button');
-    bottomExpandButton.className = 'code-gradient-expand';
-    bottomExpandButton.type = 'button';
-    bottomExpandButton.setAttribute('aria-label', 'Expand code block');
-
-    bottomExpandButton.addEventListener('click', () => {
-      wrapper.classList.remove('is-collapsed');
-      collapseButton.textContent = 'Collapse';
-    });
-
-    wrapper.appendChild(bottomExpandButton);
     actions.appendChild(collapseButton);
   }
 
@@ -137,7 +127,7 @@ document.querySelectorAll('pre').forEach((pre) => {
   });
 
   actions.appendChild(copyButton);
-
   header.append(label, actions);
+
   wrapper.prepend(header);
 });
